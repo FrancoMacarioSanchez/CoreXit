@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreX - Se viene algo grande</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent scrolling to keep focus on the center */
+            background-color: #050505;
+            font-family: 'Montserrat', sans-serif;
+            color: #ffffff;
+        }
+
+        /* Typography for tech feel */
+        .tech-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Sequential reveal classes */
+        .reveal-item {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Levitation animation for the icon */
+        @keyframes levitate {
+            0% { transform: translateY(0px) scale(1); box-shadow: 0 10px 30px rgba(0, 80, 255, 0.2); }
+            50% { transform: translateY(-15px) scale(1.02); box-shadow: 0 25px 40px rgba(0, 150, 255, 0.4); }
+            100% { transform: translateY(0px) scale(1); box-shadow: 0 10px 30px rgba(0, 80, 255, 0.2); }
+        }
+
+        .animate-levitate {
+            animation: levitate 4s ease-in-out infinite;
+        }
+
+        /* Subtle pulse for the glowing background */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        .bg-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(14, 56, 122, 0.15) 0%, rgba(0,0,0,0) 70%);
+            z-index: 1;
+            pointer-events: none;
+            animation: pulse-glow 8s ease-in-out infinite;
+        }
+
+        /* Glassmorphism containers for logos to handle white backgrounds gracefully */
+        .logo-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 2rem;
+            display: inline-block;
+        }
+        
+        .logo-img-fix {
+            /* If the image has a harsh white background, this blend mode softens it on dark backgrounds */
+            mix-blend-mode: screen;
+            filter: contrast(1.2) grayscale(100%) brightness(1.5);
+        }
+
+        /* Form styling */
+        .input-glow {
+            transition: all 0.3s ease;
+        }
+        .input-glow:focus {
+            box-shadow: 0 0 20px rgba(0, 120, 255, 0.3);
+            border-color: rgba(0, 120, 255, 0.8);
+            outline: none;
+        }
+
+        /* Progress Bar Animation */
+        @keyframes progress {
+            0% { width: 0%; }
+            100% { width: 85%; } /* Stops at 85% for suspense */
+        }
+        .progress-fill {
+            animation: progress 3s cubic-bezier(0.1, 0.7, 0.1, 1) forwards;
+            animation-delay: 1.5s;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-blue-500 selection:text-white">
+
+    <!-- Particle Canvas Background -->
+    <canvas id="particleCanvas" class="absolute inset-0 z-0 w-full h-full"></canvas>
+    
+    <!-- Glowing background accent -->
+    <div class="bg-glow"></div>
+
+    <!-- Main Content Container -->
+    <main class="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center">
+        
+        <div class="max-w-3xl mx-auto w-full flex flex-col items-center space-y-10">
+            
+            <!-- Logos -->
+            <div class="flex flex-col items-center justify-center space-y-6">
+                <!-- Icon Logo (Levitating) -->
+                <div class="reveal-item logo-container rounded-full animate-levitate bg-white p-2">
+                    <img src="logo.png" alt="CoreX Icon" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover shadow-inner">
+                </div>
+                
+                <!-- Text Logo (Fade-in) -->
+                <div class="reveal-item bg-white/5 backdrop-blur-md rounded-xl p-4 border border-white/10">
+                    <img src="logo2.jpeg" alt="CoreX Text" class="h-10 sm:h-14 object-contain">
+                </div>
+            </div>
+
+            <!-- Headlines -->
+            <div class="space-y-4">
+                <div class="reveal-item overflow-hidden">
+                    <h1 class="tech-font text-4xl sm:text-6xl md:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-200 py-2">
+                        Se viene algo grande
+                    </h1>
+                </div>
+                <p class="reveal-item text-gray-400 text-lg sm:text-xl font-light tracking-wide max-w-xl mx-auto">
+                    Estamos construyendo la próxima generación de sistemas informáticos. Prepárate para redefinir los límites.
+                </p>
+            </div>
+
+            <!-- Interactive Section (Progress & Form) -->
+            <div class="w-full max-w-md mx-auto space-y-8 mt-4">
+                
+                <!-- Suspense Progress Bar -->
+                <div class="reveal-item w-full space-y-2">
+                    <div class="flex justify-between text-xs text-gray-500 tech-font tracking-widest font-semibold uppercase">
+                        <span>Inicializando CoreX</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-blue-600 to-cyan-400 w-0 progress-fill rounded-full shadow-[0_0_10px_rgba(0,180,255,0.7)] relative">
+                            <div class="absolute right-0 top-0 bottom-0 w-4 bg-white/50 blur-[2px]"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Form -->
+                <form id="notifyForm" class="reveal-item flex flex-col sm:flex-row gap-3">
+                    <input 
+                        type="email" 
+                        required 
+                        placeholder="Ingresa tu email para acceso anticipado..." 
+                        class="flex-1 bg-gray-900/60 border border-gray-700 text-white rounded-lg px-5 py-3.5 focus:ring-2 focus:ring-blue-500/50 input-glow placeholder-gray-500 backdrop-blur-sm"
+                    >
+                    <button 
+                        type="submit" 
+                        class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 px-6 rounded-lg transition-all duration-300 shadow-[0_0_15px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_rgba(37,99,235,0.6)] transform hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                        Notificarme
+                    </button>
+                </form>
+
+            </div>
+            
+        </div>
+        
+        <!-- Subtle Footer -->
+        <div class="absolute bottom-6 reveal-item text-gray-600 text-sm tech-font tracking-widest">
+            &copy; <span id="year"></span> COREX. SISTEMAS INFORMÁTICOS.
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_Z73Pkz2kJJIfcSS7K21HD0LfzXLWFis",
+            authDomain: "corexlanding.firebaseapp.com",
+            projectId: "corexlanding",
+            storageBucket: "corexlanding.firebasestorage.app",
+            messagingSenderId: "138983532008",
+            appId: "1:138983532008:web:33d43796f58bc32938705d",
+            measurementId: "G-ZH6T94LJV8"
+        };
+        
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch(e) {
+            console.error("Firebase init error", e);
+        }
+
+        async function initAuth() {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Auth error:", error);
+            }
+        }
+
+        // Initialize authentication on load
+        initAuth();
+
+        const notifyForm = document.getElementById('notifyForm');
+        notifyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const emailInput = e.target.querySelector('input[type="email"]');
+            const email = emailInput.value;
+            
+            const originalText = btn.textContent;
+            btn.textContent = 'Guardando...';
+            btn.disabled = true;
+
+            try {
+                if (!auth.currentUser) await initAuth(); 
+                
+                // Save to the 'subscribers' collection in your Firestore
+                const subscribersRef = collection(db, 'subscribers');
+                await addDoc(subscribersRef, {
+                    email: email,
+                    timestamp: serverTimestamp(),
+                    userId: auth.currentUser.uid
+                });
+
+                btn.textContent = '¡Registrado!';
+                btn.classList.replace('bg-blue-600', 'bg-green-500');
+                btn.classList.replace('hover:bg-blue-500', 'hover:bg-green-400');
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.replace('bg-green-500', 'bg-blue-600');
+                    btn.classList.replace('hover:bg-green-400', 'hover:bg-blue-500');
+                    btn.disabled = false;
+                    e.target.reset(); // Clear the input field
+                }, 3000);
+            } catch (error) {
+                console.error("Error saving email: ", error);
+                btn.textContent = 'Error. Intenta de nuevo.';
+                btn.classList.replace('bg-blue-600', 'bg-red-500');
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.classList.replace('bg-red-500', 'bg-blue-600');
+                    btn.disabled = false;
+                }, 3000);
+            }
+        });
+    </script>
+
+    <script>
+        // Set current year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // --- Sequential Reveal Animation ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const items = document.querySelectorAll('.reveal-item');
+            items.forEach((item, index) => {
+                setTimeout(() => {
+                    item.classList.add('visible');
+                }, 300 + (index * 250)); // Staggered delay for each element
+            });
+        });
+
+        // --- Network Particle System (Tech Suspense Effect) ---
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 1.5 + 0.5;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Bounce off edges gently
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(100, 150, 255, 0.5)';
+                ctx.fill();
+            }
+        }
+
+        // Initialize particles
+        const particleCount = window.innerWidth < 768 ? 40 : 80;
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw lines between close particles
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 120) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(100, 150, 255, ${0.15 - (distance / 120) * 0.15})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        // Start animation loop
+        animateParticles();
+    </script>
+</body>
+</html>
