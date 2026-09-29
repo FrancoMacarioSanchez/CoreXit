@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,13 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background-color: #020617; /* Slate 950 muy oscuro */
+            background-color: #020617;
             color: #ffffff;
             font-family: 'Inter', system-ui, sans-serif;
-            overflow: hidden; /* Evita scroll innecesario */
+            overflow: hidden;
         }
-        
-        /* Contenedor del fondo interactivo */
         #particles-js {
             position: absolute;
             width: 100%;
@@ -23,7 +22,6 @@
             z-index: 0;
             background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
         }
-
         .glass-panel {
             background: rgba(15, 23, 42, 0.4);
             backdrop-filter: blur(16px);
@@ -31,7 +29,6 @@
             border: 1px solid rgba(59, 130, 246, 0.15);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
-
         .glow-text {
             text-shadow: 0 0 30px rgba(96, 165, 250, 0.3);
         }
@@ -39,21 +36,23 @@
 </head>
 <body class="h-screen w-screen flex flex-col relative">
 
-    <!-- Fondo de Partículas Reales -->
+    <!-- Botón de Acceso al Sistema -->
+    <div class="absolute top-6 right-6 z-20">
+        <a href="{% url 'login' %}" class="glass-panel px-6 py-2.5 rounded-xl text-sm font-medium text-blue-400 hover:text-white hover:border-blue-400 transition-all duration-300 flex items-center gap-2">
+            Ingresar al Sistema
+        </a>
+    </div>
+
     <div id="particles-js"></div>
 
-    <!-- Contenido Principal -->
     <main class="relative z-10 flex-grow flex flex-col items-center justify-center px-4">
-        
-        <!-- Logos -->
         <div class="flex flex-col items-center mb-10 transform transition duration-700 hover:scale-105">
             <div class="w-24 h-24 rounded-full bg-white flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(37,99,235,0.4)]">
-                <img src="logo.png" alt="CoreX Isologotipo" class="w-16 h-16 object-contain mix-blend-multiply">
+                <img src="{% static 'landing/logo.png' %}" alt="CoreX Isologotipo" class="w-16 h-16 object-contain mix-blend-multiply">
             </div>
-            <img src="logo2.jpeg" alt="CoreX Typo" class="h-10 object-contain">
+            <img src="{% static 'landing/logo2.jpeg' %}" alt="CoreX Typo" class="h-10 object-contain">
         </div>
 
-        <!-- Título Principal -->
         <div class="text-center max-w-4xl mb-12">
             <h1 class="text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-200 py-2 glow-text mb-4">
                 Se viene algo grande
@@ -65,8 +64,6 @@
             </p>
         </div>
 
-
-        <!-- Formulario y Progreso -->
         <div class="w-full max-w-lg glass-panel p-8 rounded-2xl">
             <div class="mb-6">
                 <div class="flex justify-between text-xs text-blue-400 mb-3 font-mono tracking-widest">
@@ -100,15 +97,12 @@
         </div>
     </main>
 
-    <!-- Footer minimalista -->
     <footer class="relative z-10 w-full py-6 text-center">
         <p class="text-slate-500 text-xs tracking-wider uppercase font-medium">© 2026 CoreX IT Solutions</p>
     </footer>
 
-    <!-- Scripts de Partículas -->
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // Configuración premium para las partículas (red tecnológica)
         particlesJS("particles-js", {
             particles: {
                 number: { value: 60, density: { enable: true, value_area: 800 } },
@@ -116,97 +110,15 @@
                 shape: { type: "circle" },
                 opacity: { value: 0.3, random: true },
                 size: { value: 3, random: true },
-                line_linked: {
-                    enable: true,
-                    distance: 150,
-                    color: "#3B82F6",
-                    opacity: 0.2,
-                    width: 1
-                },
-                move: {
-                    enable: true,
-                    speed: 1.5,
-                    direction: "none",
-                    random: true,
-                    straight: false,
-                    out_mode: "out",
-                    bounce: false,
-                }
+                line_linked: { enable: true, distance: 150, color: "#3B82F6", opacity: 0.2, width: 1 },
+                move: { enable: true, speed: 1.5, direction: "none", random: true, straight: false, out_mode: "out", bounce: false }
             },
             interactivity: {
                 detect_on: "canvas",
-                events: {
-                    onhover: { enable: true, mode: "grab" },
-                    onclick: { enable: true, mode: "push" },
-                    resize: true
-                },
-                modes: {
-                    grab: { distance: 200, line_linked: { opacity: 0.5 } },
-                    push: { particles_nb: 3 }
-                }
+                events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true },
+                modes: { grab: { distance: 200, line_linked: { opacity: 0.5 } }, push: { particles_nb: 3 } }
             },
             retina_detect: true
-        });
-    </script>
-
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyA_Z73Pkz2kJJIfcSS7K21HD0LfzXLWFis",
-            authDomain: "corexlanding.firebaseapp.com",
-            projectId: "corexlanding",
-            storageBucket: "corexlanding.firebasestorage.app",
-            messagingSenderId: "138983532008",
-            appId: "1:138983532008:web:33d43796f58bc32938705d"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        const form = document.getElementById('notify-form');
-        const emailInput = document.getElementById('email-input');
-        const submitBtn = document.getElementById('submit-btn');
-        const messageEl = document.getElementById('form-message');
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = emailInput.value.trim();
-            if(!email) return;
-
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Conectando...';
-
-            try {
-                await addDoc(collection(db, "subscribers"), {
-                    email: email,
-                    timestamp: serverTimestamp()
-                });
-                
-                submitBtn.innerHTML = '¡Acceso Asegurado!';
-                submitBtn.classList.replace('bg-blue-600', 'bg-emerald-500');
-                submitBtn.classList.replace('hover:bg-blue-500', 'hover:bg-emerald-400');
-                submitBtn.classList.replace('shadow-[0_0_20px_rgba(37,99,235,0.3)]', 'shadow-[0_0_20px_rgba(16,185,129,0.4)]');
-                
-                setTimeout(() => {
-                    emailInput.value = '';
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = 'Notificarme';
-                    submitBtn.classList.replace('bg-emerald-500', 'bg-blue-600');
-                    submitBtn.classList.replace('hover:bg-emerald-400', 'hover:bg-blue-500');
-                    submitBtn.classList.replace('shadow-[0_0_20px_rgba(16,185,129,0.4)]', 'shadow-[0_0_20px_rgba(37,99,235,0.3)]');
-                }, 4000);
-
-            } catch (error) {
-                console.error("Error:", error);
-                messageEl.textContent = "Error de conexión. Intenta nuevamente.";
-                messageEl.classList.remove('hidden', 'text-emerald-400');
-                messageEl.classList.add('text-red-400');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = 'Notificarme';
-            }
         });
     </script>
 </body>

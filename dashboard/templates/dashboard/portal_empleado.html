@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreXIT | Command Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #0f172a;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .light-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .kanban-col {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- 👈 Navbar de Staff unificado -->
+    {% include "dashboard/partials/navbar_staff.html" %}
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-6 py-8 flex flex-col gap-8">
+
+        <!-- Barra de Acciones Rápidas y Buscador -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+            <!-- Buscador en tiempo real -->
+            <div class="w-full md:w-96 relative">
+                <input type="text" id="searchInput" onkeyup="filtrarClientes()" placeholder="Buscar cliente por nombre o empresa..." class="w-full bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-600 shadow-sm">
+            </div>
+            <!-- Botones de Acción Rápida -->
+            <div class="flex items-center gap-3 w-full md:w-auto justify-end">
+                <a href="/admin/dashboard/servicio/add/" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm">
+                    + Nuevo Servicio Global
+                </a>
+                <a href="/admin/dashboard/clienteprofile/add/" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm">
+                    + Cargar Cliente Admin
+                </a>
+            </div>
+        </div>
+
+        <!-- Métricas Rápidas -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div class="light-panel p-5 rounded-2xl flex flex-col">
+                <span class="text-xs font-mono text-slate-500 uppercase tracking-wider">Clientes Registrados</span>
+                <span class="text-3xl font-bold text-slate-900 mt-1">{{ clientes.count }}</span>
+            </div>
+            <div class="light-panel p-5 rounded-2xl flex flex-col">
+                <span class="text-xs font-mono text-slate-500 uppercase tracking-wider">Servicios Activos</span>
+                <span class="text-3xl font-bold text-emerald-600 mt-1">{{ contrataciones.count }}</span>
+            </div>
+            <div class="light-panel p-5 rounded-2xl flex flex-col">
+                <span class="text-xs font-mono text-slate-500 uppercase tracking-wider">Membresías</span>
+                <span class="text-3xl font-bold text-cyan-600 mt-1">{{ membresias.count }}</span>
+            </div>
+            <div class="light-panel p-5 rounded-2xl flex flex-col">
+                <span class="text-xs font-mono text-slate-500 uppercase tracking-wider">Tickets Totales</span>
+                <span class="text-3xl font-bold text-blue-600 mt-1">{{ tickets.count }}</span>
+            </div>
+        </div>
+
+        <!-- Sección 1: Directorio de Clientes con Buscador Activo -->
+        <div class="light-panel p-6 rounded-2xl">
+            <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                Directorio de Clientes
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-700" id="clientesTable">
+                    <thead class="bg-slate-100 text-xs uppercase text-slate-500 font-mono border-b border-slate-200">
+                        <tr>
+                            <th class="p-3">Usuario</th>
+                            <th class="p-3">Empresa</th>
+                            <th class="p-3">Teléfono</th>
+                            <th class="p-3">Correo</th>
+                            <th class="p-3 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for cli in clientes %}
+                            <tr class="hover:bg-slate-50 transition-colors cliente-row">
+                                <td class="p-3 font-semibold text-slate-900 username-cell">{{ cli.user.username }}</td>
+                                <td class="p-3 text-slate-600 empresa-cell">{{ cli.empresa|default:"No especificada" }}</td>
+                                <td class="p-3 font-mono text-xs text-slate-500">{{ cli.telefono|default:"Sin teléfono" }}</td>
+                                <td class="p-3 text-xs font-mono text-blue-600">{{ cli.user.email }}</td>
+                                <td class="p-3 text-center">
+                                    <a href="{% url 'detalle_cliente' cli.id %}" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 text-xs px-3 py-1.5 rounded-lg transition-all font-medium">
+                                        Ver Legajo →
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5" class="p-4 text-center text-slate-400 italic">No hay clientes registrados.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sección 2: Control Rápido de Membresías -->
+        <div class="light-panel p-6 rounded-2xl">
+            <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H4a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                Control de Membresías y Pagos
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {% for m in membresias %}
+                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-col justify-between gap-3">
+                        <div>
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-bold text-slate-900 text-sm">{{ m.nombre_plan }}</h4>
+                                <span class="text-xs font-mono text-slate-500">{{ m.cliente.user.username }}</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1">Vencimiento: <span class="font-mono text-blue-600">{{ m.fecha_vencimiento }}</span></p>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-200">
+                            <span class="text-xs font-medium px-2.5 py-0.5 rounded-full {% if m.pagado %}bg-emerald-100 text-emerald-700 border border-emerald-200{% else %}bg-amber-100 text-amber-700 border border-amber-200{% endif %}">
+                                {% if m.pagado %}Al Día{% else %}Pendiente{% endif %}
+                            </span>
+                            <a href="{% url 'alternar_pago_membresia' m.id %}" class="text-xs font-medium bg-slate-200 hover:bg-slate-300 text-slate-800 px-3 py-1.5 rounded-lg transition-all">
+                                Cambiar Estado 🔄
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-slate-400 text-xs italic col-span-3 text-center py-4">No hay membresías registradas.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sección 3: Tablero Kanban de Tickets de Soporte -->
+        <div class="light-panel p-6 rounded-2xl">
+            <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-6 9l2 2 4-4"/></svg>
+                Tablero de Control de Soporte (Kanban)
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                
+                <!-- Columna Abierto -->
+                <div class="kanban-col p-4 rounded-xl flex flex-col gap-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-300">
+                        <span class="text-xs font-mono text-amber-700 font-bold uppercase">Abiertos ({{ tickets_abiertos.count }})</span>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        {% for t in tickets_abiertos %}
+                            {% include "dashboard/partials/ticket_card.html" %}
+                        {% empty %}
+                            <p class="text-xs text-slate-400 italic py-2 text-center">Sin tickets abiertos</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Columna En Proceso -->
+                <div class="kanban-col p-4 rounded-xl flex flex-col gap-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-300">
+                        <span class="text-xs font-mono text-blue-700 font-bold uppercase">En Proceso ({{ tickets_proceso.count }})</span>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        {% for t in tickets_proceso %}
+                            {% include "dashboard/partials/ticket_card.html" %}
+                        {% empty %}
+                            <p class="text-xs text-slate-400 italic py-2 text-center">Sin tickets en proceso</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Columna Resueltos -->
+                <div class="kanban-col p-4 rounded-xl flex flex-col gap-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-300">
+                        <span class="text-xs font-mono text-emerald-700 font-bold uppercase">Resueltos ({{ tickets_resueltos.count }})</span>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        {% for t in tickets_resueltos %}
+                            {% include "dashboard/partials/ticket_card.html" %}
+                        {% empty %}
+                            <p class="text-xs text-slate-400 italic py-2 text-center">Sin tickets resueltos</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Columna Cerrados -->
+                <div class="kanban-col p-4 rounded-xl flex flex-col gap-3">
+                    <div class="flex justify-between items-center pb-2 border-b border-slate-300">
+                        <span class="text-xs font-mono text-slate-600 font-bold uppercase">Cerrados ({{ tickets_cerrados.count }})</span>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        {% for t in tickets_cerrados %}
+                            {% include "dashboard/partials/ticket_card.html" %}
+                        {% empty %}
+                            <p class="text-xs text-slate-400 italic py-2 text-center">Sin tickets cerrados</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script de Búsqueda Instantánea -->
+    <script>
+        function filtrarClientes() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const filas = document.getElementsByClassName('cliente-row');
+
+            for (let i = 0; i < filas.length; i++) {
+                const username = filas[i].getElementsByClassName('username-cell')[0].textContent.toLowerCase();
+                const empresa = filas[i].getElementsByClassName('empresa-cell')[0].textContent.toLowerCase();
+
+                if (username.includes(input) || empresa.includes(input)) {
+                    filas[i].style.display = "";
+                } else {
+                    filas[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+
+    <footer class="text-center py-6 text-slate-400 text-xs border-t border-slate-200 mt-auto">
+        © 2026 CoreX IT Solutions - Panel Interno de Empleados
+    </footer>
+</body>
+</html>

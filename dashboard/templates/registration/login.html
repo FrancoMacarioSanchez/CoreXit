@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreX | Portal de Acceso</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #ffffff;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen w-screen flex items-center justify-center relative py-10 px-4">
+    
+    <div class="w-full max-w-md glass-panel p-8 rounded-2xl">
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white">Portal CoreX</h1>
+            <p class="text-slate-400 text-xs mt-1">Gestión de sistemas y clientes</p>
+        </div>
+
+        {% if login_form.errors or registro_form.errors %}
+            <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl mb-4 text-sm text-center">
+                Por favor, verificá los datos ingresados.
+            </div>
+        {% endif %}
+
+        <!-- Pestañas para alternar -->
+        <div class="flex bg-slate-900/80 p-1 rounded-xl mb-6 border border-slate-800">
+            <button type="button" onclick="switchTab('login')" id="btn-login" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-blue-600 text-white shadow">Ingresar</button>
+            <button type="button" onclick="switchTab('register')" id="btn-register" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white">Registrarse</button>
+        </div>
+
+        <!-- Formulario de Login -->
+        <!-- Formulario de Login -->
+        <form method="post" id="form-login" class="flex flex-col gap-4">
+            {% csrf_token %}
+            <input type="hidden" name="action_login" value="1">
+            
+            <div>
+                <label class="block text-xs font-mono text-blue-400 mb-2">USUARIO</label>
+                <!-- Renderizado manual del input de usuario con Tailwind -->
+                <input type="text" name="username" required placeholder="Tu usuario" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-mono text-blue-400 mb-2">CONTRASEÑA</label>
+                <!-- Renderizado manual del input de contraseña con Tailwind -->
+                <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
+            </div>
+            
+            <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] text-sm">
+                Iniciar Sesión
+            </button>
+        </form>
+
+        <!-- Formulario de Registro (Oculto por defecto) -->
+        <form method="post" id="form-register" class="flex flex-col gap-3 hidden">
+            {% csrf_token %}
+            <input type="hidden" name="action_register" value="1">
+            
+            <div>
+                <label class="block text-xs font-mono text-blue-400 mb-1">USUARIO</label>
+                {{ registro_form.username }}
+            </div>
+            <div>
+                <label class="block text-xs font-mono text-blue-400 mb-1">CORREO ELECTRÓNICO</label>
+                {{ registro_form.email }}
+            </div>
+            <div>
+                <label class="block text-xs font-mono text-blue-400 mb-1">EMPRESA (Opcional)</label>
+                {{ registro_form.empresa }}
+            </div>
+            <div>
+                <label class="block text-xs font-mono text-blue-400 mb-1">TELÉFONO (Opcional)</label>
+                {{ registro_form.telefono }}
+            </div>
+            <div>
+                <label class="block text-xs font-mono text-blue-400 mb-1">CONTRASEÑA</label>
+                <input type="password" name="password1" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-mono text-blue-400 mb-1">CONFIRMAR CONTRASEÑA</label>
+                <input type="password" name="password2" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
+            </div>
+            
+            <button type="submit" class="mt-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] text-sm">
+                Crear Cuenta de Cliente
+            </button>
+        </form>
+
+        <div class="text-center mt-6">
+            <a href="{% url 'landing-home' %}" class="text-xs text-slate-500 hover:text-blue-400 transition-colors">← Volver a la Landing</a>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            const loginForm = document.getElementById('form-login');
+            const registerForm = document.getElementById('form-register');
+            const btnLogin = document.getElementById('btn-login');
+            const btnRegister = document.getElementById('btn-register');
+
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                btnLogin.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-blue-600 text-white shadow";
+                btnRegister.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white";
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                btnRegister.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-emerald-600 text-white shadow";
+                btnLogin.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white";
+            }
+        }
+    </script>
+</body>
+</html>

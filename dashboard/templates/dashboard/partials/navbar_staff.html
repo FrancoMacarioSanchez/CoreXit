@@ -1,0 +1,30 @@
+<header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+            <span class="text-blue-600 font-bold tracking-wider text-base">COREX IT</span>
+            <span class="text-xs text-amber-700 font-mono bg-amber-100 px-2.5 py-0.5 rounded-full border border-amber-300">Staff Portal</span>
+        </div>
+        <!-- Enlaces de Navegación -->
+        <nav class="hidden md:flex items-center gap-2">
+            <a href="{% url 'portal_empleado' %}" class="px-3 py-2 rounded-lg text-xs font-semibold {% if request.resolver_match.url_name == 'portal_empleado' %}bg-blue-50 text-blue-600 border border-blue-200{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %} transition-all">
+                📊 Command Center (Kanban)
+            </a>
+            <a href="{% url 'lista_clientes_staff' %}" class="px-3 py-2 rounded-lg text-xs font-semibold {% if request.resolver_match.url_name == 'lista_clientes_staff' or request.resolver_match.url_name == 'detalle_cliente' %}bg-blue-50 text-blue-600 border border-blue-200{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-50{% endif %} transition-all">
+                🗂️ Directorio y Legajos de Clientes
+            </a>
+        </nav>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <span class="text-xs text-slate-500">Operador: <strong class="text-slate-800">{{ request.user.username }}</strong></span>
+        <a href="/admin/" target="_blank" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition-all font-medium border border-slate-300">
+            Admin ↗
+        </a>
+        <form action="{% url 'logout' %}" method="post" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg transition-all font-medium">
+                Salir
+            </button>
+        </form>
+    </div>
+</header>
