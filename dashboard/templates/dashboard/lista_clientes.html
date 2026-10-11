@@ -4,11 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreXIT | Listado y Auditoría de Clientes</title>
+    <title>CoreXIT | Auditoría de Clientes</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f8fafc; color: #0f172a; font-family: 'Inter', system-ui, sans-serif; }
-        .light-panel { background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        body { 
+            background-color: #f8fafc; 
+            color: #334155; 
+            font-family: 'Inter', sans-serif; 
+        }
+        .modern-card { 
+            background: #ffffff; 
+            border: 1px solid #f1f5f9; 
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03); 
+            border-radius: 1.25rem; 
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -17,65 +30,117 @@
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-6 py-8 flex flex-col gap-6">
         
-        <div class="flex justify-between items-center">
+        <!-- Header y Buscador -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-slate-900">Auditoría y Control de Clientes</h1>
-                <p class="text-xs text-slate-500 mt-1">Legajos corporativos, estados financieros, permisos y control de moras.</p>
+                <p class="text-sm text-slate-500 mt-1">Directorio corporativo, estado de servicios y control de morosidad.</p>
             </div>
-            <input type="text" id="searchClient" onkeyup="filtrarTabla()" placeholder="Buscar en el directorio..." class="bg-white border border-slate-300 rounded-xl px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 shadow-sm w-72">
+            <div class="w-full md:w-80">
+                <div class="relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    <input type="text" id="searchClient" onkeyup="filtrarTabla()" placeholder="Buscar cliente o empresa..." class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm transition-all">
+                </div>
+            </div>
         </div>
 
-        <div class="light-panel rounded-2xl overflow-hidden">
-            <table class="w-full text-left text-sm text-slate-700" id="tablaClientes">
-                <thead class="bg-slate-100 text-xs uppercase text-slate-500 font-mono border-b border-slate-200">
-                    <tr>
-                        <th class="p-4">Cliente / Empresa</th>
-                        <th class="p-4">Contacto</th>
-                        <th class="p-4 text-center">Sist. Activos</th>
-                        <th class="p-4 text-center">Estado Financiero</th>
-                        <th class="p-4 text-center">Condición de Mora</th>
-                        <th class="p-4 text-center">Legajo</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    {% for item in clientes_data %}
-                        <tr class="hover:bg-slate-50 transition-colors fila-cliente">
-                            <td class="p-4">
-                                <span class="font-bold text-slate-900 block text-base cliente-nombre">{{ item.perfil.user.username }}</span>
-                                <span class="text-xs text-slate-500 cliente-empresa">{{ item.perfil.empresa|default:"Particular / Sin Empresa" }}</span>
-                            </td>
-                            <td class="p-4 text-xs font-mono">
-                                <span class="block text-blue-600">{{ item.perfil.user.email }}</span>
-                                <span class="text-slate-500">{{ item.perfil.telefono|default:"Sin teléfono" }}</span>
-                            </td>
-                            <td class="p-4 text-center font-bold text-slate-800">
-                                {{ item.total_servicios }}
-                            </td>
-                            <td class="p-4 text-center">
-                                {% if item.deuda_pendiente %}
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 border border-amber-300">Deuda Pendiente</span>
-                                {% else %}
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 border border-emerald-300">Al Día</span>
-                                {% endif %}
-                            </td>
-                            <td class="p-4 text-center">
-                                {% if item.en_mora %}
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-300 animate-pulse">EN MORA ACTIVA</span>
-                                {% else %}
-                                    <span class="text-xs text-slate-400 font-mono">Normal</span>
-                                {% endif %}
-                            </td>
-                            <td class="p-4 text-center">
-                                <a href="{% url 'detalle_cliente' item.perfil.id %}" class="bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 text-xs px-3.5 py-2 rounded-xl transition-all font-semibold shadow-sm inline-block">
-                                    Ver Legajo Completo →
-                                </a>
-                            </td>
+        <!-- Tabla Principal -->
+        <div class="modern-card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-700" id="tablaClientes">
+                    <thead class="bg-slate-50/50 text-[11px] uppercase text-slate-500 font-semibold tracking-wider border-b border-slate-100">
+                        <tr>
+                            <th class="p-4 lg:p-5 w-1/4">Cliente / Empresa</th>
+                            <th class="p-4 lg:p-5 w-1/4">Contacto</th>
+                            <th class="p-4 lg:p-5 w-1/4">Sistemas Asignados</th>
+                            <th class="p-4 lg:p-5 text-center">Estado Financiero</th>
+                            <th class="p-4 lg:p-5 text-center">Acciones</th>
                         </tr>
-                    {% empty %}
-                        <tr><td colspan="6" class="p-6 text-center text-slate-400 italic">No hay clientes registrados en el sistema.</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for item in clientes_data %}
+                            <tr class="hover:bg-slate-50/50 transition-colors fila-cliente">
+                                
+                                <!-- Usuario y Empresa -->
+                                <td class="p-4 lg:p-5">
+                                    <span class="font-bold text-slate-900 block text-base cliente-nombre">{{ item.perfil.user.username }}</span>
+                                    <span class="text-xs text-slate-500 cliente-empresa">{{ item.perfil.empresa|default:"Sin Empresa" }}</span>
+                                </td>
+                                
+                                <!-- Información de Contacto -->
+                                <td class="p-4 lg:p-5 text-xs">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                        <span class="text-blue-600 font-medium">{{ item.perfil.user.email }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                        <span class="text-slate-500 font-mono">{{ item.perfil.telefono|default:"Sin teléfono" }}</span>
+                                    </div>
+                                </td>
+                                
+                                <!-- Sistemas Asignados -->
+<td class="p-4 lg:p-5">
+    <div class="flex flex-col gap-2 items-start">
+        {% for c in item.perfil.contrataciones.all %}
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-[10px] rounded font-bold uppercase tracking-wider border
+                    {% if c.estado == 'activo' %} bg-emerald-50 text-emerald-600 border-emerald-100
+                    {% elif c.estado == 'suspendido' %} bg-amber-50 text-amber-600 border-amber-100
+                    {% else %} bg-slate-50 text-slate-500 border-slate-200 {% endif %}"
+                    title="Estado: {{ c.get_estado_display }}">
+                    
+                    <!-- Validamos si existe el plan antes de imprimirlo -->
+                    {% if c.plan %}
+                        {{ c.plan.servicio.prefijo|default:c.plan.servicio.nombre }}
+                    {% else %}
+                        SISTEMA
+                    {% endif %}
+                    
+                </span>
+                <span class="text-[11px] text-slate-600 font-medium">
+                    {% if c.plan %}
+                        {{ c.plan.nombre|truncatechars:15 }}
+                    {% else %}
+                        Sin plan asignado
+                    {% endif %}
+                </span>
+            </div>
+        {% empty %}
+            <span class="text-[11px] text-slate-400 italic">Sin sistemas activos</span>
+        {% endfor %}
+    </div>
+</td>
+                                
+                                <!-- Estado Financiero -->
+                                <td class="p-4 lg:p-5 text-center">
+                                    <div class="flex flex-col gap-2 items-center">
+                                        {% if item.deuda_pendiente %}
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-amber-600 border border-amber-200 w-full text-center">Con Deuda</span>
+                                        {% else %}
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100 w-full text-center">Pagos Al Día</span>
+                                        {% endif %}
+                                        
+                                        {% if item.en_mora %}
+                                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-200 animate-pulse w-full text-center">En Mora Activa</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                
+                                <!-- Botón de Legajo -->
+                                <td class="p-4 lg:p-5 text-center">
+                                    <a href="{% url 'detalle_cliente' item.perfil.id %}" class="inline-flex items-center gap-1.5 bg-white hover:bg-blue-50 text-blue-600 border border-slate-200 hover:border-blue-200 text-xs px-4 py-2 rounded-xl transition-all font-semibold shadow-sm whitespace-nowrap">
+                                        Ver Legajo
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="5" class="p-8 text-center text-slate-400 italic">No hay clientes registrados en el sistema.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </main>
@@ -96,7 +161,7 @@
         }
     </script>
 
-    <footer class="text-center py-6 text-slate-400 text-xs border-t border-slate-200 mt-auto">
+    <footer class="text-center py-6 text-slate-400 text-xs border-t border-slate-100 mt-auto">
         © 2026 CoreX IT Solutions - Módulo de Auditoría de Clientes
     </footer>
 </body>

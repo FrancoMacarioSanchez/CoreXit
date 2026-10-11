@@ -7,49 +7,40 @@
     <title>CoreX | Mi Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            background-color: #020617;
-            color: #ffffff;
-            font-family: 'Inter', system-ui, sans-serif;
-        }
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(59, 130, 246, 0.15);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
+        body { background-color: #020617; color: #ffffff; font-family: 'Inter', system-ui, sans-serif; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(59, 130, 246, 0.15); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
+        .plan-card { transition: all 0.3s ease; }
+        .plan-card.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); transform: translateY(-4px); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-    <!-- Navbar Superior -->
-    <header class="glass-panel border-b border-slate-800 px-8 py-4 flex justify-between items-center">
+    <header class="glass-panel border-b border-slate-800 px-6 md:px-8 py-4 flex justify-between items-center sticky top-0 z-40">
         <div class="flex items-center gap-3">
             <span class="text-blue-400 font-bold tracking-wider">COREX IT</span>
-            <span class="text-xs text-slate-500 font-mono">| Portal de Cliente</span>
+            <span class="hidden sm:inline text-xs text-slate-500 font-mono">| Portal de Cliente</span>
         </div>
         <div class="flex items-center gap-4">
-            <span class="text-sm text-slate-300">Hola, <strong class="text-white">{{ request.user.username }}</strong></span>
+            <span class="text-sm text-slate-300 hidden sm:block">Hola, <strong class="text-white">{{ request.user.username }}</strong></span>
             <form action="{% url 'logout' %}" method="post" class="inline">
                 {% csrf_token %}
-                <button type="submit" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg transition-all">
+                <button type="submit" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-lg transition-all font-medium">
                     Cerrar Sesión
                 </button>
             </form>
         </div>
     </header>
 
-    <!-- Contenido Principal -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        <!-- Columna Izquierda: Servicios y Soporte -->
-        <div class="md:col-span-2 flex flex-col gap-6">
-            
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 md:px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 flex flex-col gap-6">
             <!-- Sección Servicios -->
             <div class="glass-panel p-6 rounded-2xl">
-                <div class="flex justify-between items-center mb-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <h2 class="text-lg font-bold text-blue-400 flex items-center gap-2">Mis Servicios y Accesos</h2>
-                    <button onclick="openModal('modal-servicio')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                    <button onclick="openModal('modal-servicio')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]">
                         + Solicitar Servicio
                     </button>
                 </div>
@@ -57,20 +48,31 @@
                 {% if contrataciones %}
                     <div class="flex flex-col gap-4">
                         {% for c in contrataciones %}
-                            <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div class="bg-slate-900/50 border border-slate-800 p-4 md:p-5 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-slate-700 transition-colors">
                                 <div>
-                                    <h3 class="font-semibold text-white">{{ c.servicio.nombre }}</h3>
-                                    <p class="text-xs text-slate-400 mt-1">Vence: <span class="text-blue-300 font-mono">{{ c.fecha_vencimiento }}</span></p>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="font-bold text-white text-base">{{ c.plan.servicio.nombre }}</h3>
+                                        <span class="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded font-medium">{{ c.plan.nombre }}</span>
+                                    </div>
+                                    <p class="text-xs text-slate-400">Vence: <span class="text-blue-300 font-mono">{{ c.fecha_vencimiento|date:"d/m/Y" }}</span></p>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="px-2.5 py-1 rounded-full text-xs font-medium 
+                                <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider 
                                         {% if c.estado == 'activo' %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 
-                                        {% else %} bg-amber-500/10 text-amber-400 border border-amber-500/20 {% endif %}">
+                                        {% elif c.estado == 'suspendido' %} bg-amber-500/10 text-amber-400 border border-amber-500/20 
+                                        {% else %} bg-slate-800 text-slate-400 border border-slate-700 {% endif %}">
                                         {{ c.get_estado_display }}
                                     </span>
-                                    {% if c.url_sistema %}
-                                        <a href="{{ c.url_sistema }}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]">
-                                            Ingresar al Sistema →
+                                    
+                                    {% if c.estado == 'activo' and c.url_sistema %}
+                                        <a href="{{ c.url_sistema }}" target="_blank" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)] whitespace-nowrap">
+                                            Ingresar &rarr;
+                                        </a>
+                                    {% elif c.estado == 'activo' and not c.url_sistema %}
+                                        <span class="text-xs text-yellow-400 animate-pulse font-medium whitespace-nowrap">Aprovisionando...</span>
+                                    {% elif c.estado == 'suspendido' %}
+                                        <a href="{% url 'checkout' c.id %}" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap">
+                                            Abonar Plan
                                         </a>
                                     {% endif %}
                                 </div>
@@ -78,14 +80,16 @@
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-slate-500 text-sm italic py-4 text-center">No tenés servicios contratados activos.</p>
+                    <div class="text-center py-8 bg-slate-900/30 rounded-xl border border-slate-800 border-dashed">
+                        <p class="text-slate-500 text-sm">No tenés servicios contratados activos.</p>
+                    </div>
                 {% endif %}
             </div>
 
             <!-- Sección Tickets -->
             <div class="glass-panel p-6 rounded-2xl">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold text-blue-400 flex items-center gap-2">Soporte Técnico (Tickets)</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-bold text-blue-400 flex items-center gap-2">Soporte Técnico</h2>
                     <button onclick="openModal('modal-ticket')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-2 rounded-xl transition-all shadow-[0_0_15px_rgba(37,99,235,0.3)]">
                         + Nuevo Ticket
                     </button>
@@ -94,150 +98,224 @@
                 {% if tickets %}
                     <div class="flex flex-col gap-3">
                         {% for t in tickets %}
-                            <div class="bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-sm">
-                                <div>
-                                    <span class="text-xs font-mono text-slate-500">#{{ t.id }}</span>
-                                    <span class="font-medium text-slate-200 ml-2">{{ t.asunto }}</span>
+                            <div class="bg-slate-900/50 border border-slate-800 p-3.5 rounded-xl flex justify-between items-center text-sm hover:bg-slate-900/80 transition-colors">
+                                <div class="overflow-hidden pr-4">
+                                    <span class="text-xs font-mono text-slate-500 mr-2">#{{ t.id }}</span>
+                                    <span class="font-medium text-slate-200 truncate">{{ t.asunto }}</span>
                                 </div>
-                                <span class="text-xs px-2 py-1 rounded bg-slate-800 text-blue-300 font-mono">{{ t.get_estado_display }}</span>
+                                <span class="text-[10px] px-2 py-1 rounded bg-slate-800 text-blue-300 font-mono uppercase tracking-wider shrink-0">{{ t.get_estado_display }}</span>
                             </div>
                         {% endfor %}
                     </div>
                 {% else %}
-                    <p class="text-slate-500 text-sm italic py-2 text-center">No hay tickets de soporte abiertos.</p>
+                    <div class="text-center py-6">
+                        <p class="text-slate-500 text-sm">No hay tickets de soporte abiertos.</p>
+                    </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Columna Derecha: Datos y Membresías -->
         <div class="flex flex-col gap-6">
+            <!-- Datos de Cuenta -->
             <div class="glass-panel p-6 rounded-2xl">
-                <h3 class="text-sm font-mono text-blue-400 mb-3">DATOS DE LA CUENTA</h3>
-                <div class="text-sm flex flex-col gap-2 text-slate-300">
-                    <p><strong>Empresa:</strong> {{ perfil.empresa|default:"No especificada" }}</p>
-                    <p><strong>Teléfono:</strong> {{ perfil.telefono|default:"No especificado" }}</p>
-                    <p><strong>Correo:</strong> {{ request.user.email }}</p>
+                <h3 class="text-xs font-mono text-blue-400 font-bold uppercase tracking-wider mb-4">Datos de la Cuenta</h3>
+                <div class="text-sm flex flex-col gap-3 text-slate-300">
+                    <p class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">Empresa</span> <span class="font-medium text-white">{{ perfil.empresa|default:"No especificada" }}</span></p>
+                    <p class="flex justify-between border-b border-slate-800 pb-2"><span class="text-slate-500">Teléfono</span> <span class="font-medium text-white">{{ perfil.telefono|default:"No especificado" }}</span></p>
+                    <p class="flex justify-between pb-1"><span class="text-slate-500">Correo</span> <span class="font-mono text-blue-300 text-xs mt-0.5">{{ request.user.email }}</span></p>
                 </div>
             </div>
 
+            <!-- Membresías -->
             <div class="glass-panel p-6 rounded-2xl">
-                <h3 class="text-sm font-mono text-blue-400 mb-3">ESTADO DE MEMBRESÍAS</h3>
+                <h3 class="text-xs font-mono text-blue-400 font-bold uppercase tracking-wider mb-4">Últimas Facturas</h3>
                 {% if membresias %}
-                    {% for m in membresias %}
-                        <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-xl flex flex-col gap-2">
-                            <span class="font-semibold text-white text-sm">{{ m.nombre_plan }}</span>
-                            <div class="flex justify-between text-xs text-slate-400">
-                                <span>Vence: {{ m.fecha_vencimiento }}</span>
-                                <span class="{% if m.pagado %}text-emerald-400{% else %}text-amber-400{% endif %} font-medium">
-                                    {% if m.pagado %}Al día{% else %}Pendiente de pago{% endif %}
-                                </span>
+                    <div class="space-y-3">
+                        {% for m in membresias|slice:":5" %}
+                            <div class="bg-slate-900/50 border border-slate-800 p-4 rounded-xl flex flex-col gap-2">
+                                <span class="font-semibold text-white text-sm">{{ m.nombre_plan|default:m.concepto }}</span>
+                                <div class="flex justify-between items-center text-xs text-slate-400">
+                                    <span class="font-mono">{{ m.fecha_vencimiento|date:"d/m/y" }}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {% if m.pagado %}text-emerald-400 bg-emerald-500/10 border border-emerald-500/20{% else %}text-amber-400 bg-amber-500/10 border border-amber-500/20{% endif %}">
+                                        {% if m.pagado %}Al día{% else %}Pendiente{% endif %}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    {% endfor %}
+                        {% endfor %}
+                    </div>
                 {% else %}
-                    <p class="text-slate-500 text-xs italic">Sin membresías activas registradas.</p>
+                    <p class="text-slate-500 text-sm text-center py-4">Sin facturación registrada.</p>
                 {% endif %}
             </div>
         </div>
-
     </main>
 
-    <!-- Modales -->
+    <!-- Modal Nuevo Ticket -->
     <div id="modal-ticket" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-        <div class="glass-panel w-full max-w-lg p-6 rounded-2xl relative border border-slate-700">
-            <h3 class="text-lg font-bold text-white mb-4">Crear Ticket de Soporte</h3>
-            <form method="post" action="{% url 'crear_ticket' %}" class="flex flex-col gap-4">
+        <div class="glass-panel w-full max-w-lg p-6 md:p-8 rounded-2xl relative border border-slate-700">
+            <h3 class="text-xl font-bold text-white mb-6">Crear Ticket de Soporte</h3>
+            <form method="post" action="{% url 'crear_ticket' %}" class="flex flex-col gap-5">
                 {% csrf_token %}
                 <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">ASUNTO</label>
-                    <input type="text" name="asunto" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white">
+                    <label class="block text-xs font-mono text-blue-400 mb-2">ASUNTO</label>
+                    <input type="text" name="asunto" required placeholder="Resumen del problema..." class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">DESCRIPCIÓN</label>
-                    <textarea name="descripcion" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white h-24"></textarea>
+                    <label class="block text-xs font-mono text-blue-400 mb-2">DESCRIPCIÓN DETALLADA</label>
+                    <textarea name="descripcion" required placeholder="Explicanos qué sucede..." class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white h-28 focus:border-blue-500 focus:outline-none resize-none"></textarea>
                 </div>
                 <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">PRIORIDAD</label>
-                    <select name="prioridad" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white bg-slate-900">
+                    <label class="block text-xs font-mono text-blue-400 mb-2">PRIORIDAD</label>
+                    <select name="prioridad" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none appearance-none">
                         <option value="baja">Baja</option>
                         <option value="media" selected>Media</option>
                         <option value="alta">Alta</option>
                         <option value="urgente">Urgente</option>
                     </select>
                 </div>
-                <div class="flex justify-end gap-3 mt-4">
-                    <button type="button" onclick="closeModal('modal-ticket')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cancelar</button>
-                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold">Enviar Ticket</button>
+                <div class="flex justify-end gap-3 mt-2">
+                    <button type="button" onclick="closeModal('modal-ticket')" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm transition-colors">Cancelar</button>
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-bold transition-colors">Enviar Ticket</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal Solicitar Servicio -->
     <div id="modal-servicio" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
-    <div class="glass-panel w-full max-w-lg p-6 rounded-2xl relative border border-slate-700">
-        <h3 class="text-lg font-bold text-white mb-4">Solicitar Nuevo Servicio</h3>
-        <form method="post" action="{% url 'solicitar_servicio' %}" class="flex flex-col gap-4">
-            {% csrf_token %}
+        <div class="glass-panel w-full max-w-5xl p-6 md:p-8 rounded-2xl relative border border-slate-700 max-h-[95vh] overflow-y-auto">
             
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">SELECCIONAR SERVICIO</label>
-                <select name="servicio" id="select-servicio" onchange="actualizarPrevisualizacion()" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white bg-slate-900">
-                    {% for s in servicios_disponibles %}
-                        <!-- Guardamos el prefijo en un atributo data para leerlo con JS -->
-                        <option value="{{ s.id }}" data-prefijo="{{ s.prefijo }}">{{ s.nombre }}</option>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h3 class="text-xl md:text-2xl font-bold text-white">Solicitar Nuevo Servicio</h3>
+                    <p class="text-sm text-slate-400 mt-1">Elegí el plan que mejor se adapte a tu negocio.</p>
+                </div>
+                
+                <!-- Toggle Mensual/Anual -->
+                <div class="bg-slate-900/80 p-1.5 rounded-xl border border-slate-800 inline-flex shrink-0">
+                    <button type="button" onclick="setModalFreq('mensual')" id="btn-modal-mensual" class="px-5 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all shadow-sm">Mensual</button>
+                    <button type="button" onclick="setModalFreq('anual')" id="btn-modal-anual" class="px-5 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all">Anual (-20%)</button>
+                </div>
+            </div>
+
+            <form method="post" action="{% url 'solicitar_servicio' %}" class="flex flex-col gap-6" id="form-solicitar">
+                {% csrf_token %}
+                
+                <input type="hidden" name="frecuencia" id="hidden-frecuencia" value="mensual">
+                <input type="hidden" name="plan" id="hidden-plan-id" required>
+                <input type="hidden" name="url_sistema" id="hidden-url-sistema">
+
+                <!-- Grilla de Planes (Tarjetas) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="planes-grid">
+                    {% for p in planes_disponibles %}
+                        <div onclick="seleccionarPlan(this, '{{ p.id }}', '{{ p.servicio.prefijo }}')" class="plan-card glass-panel bg-slate-900/40 border border-slate-700 rounded-xl p-6 cursor-pointer flex flex-col h-full">
+                            <span class="text-[10px] font-bold text-blue-400 tracking-wider uppercase mb-1">{{ p.servicio.nombre }}</span>
+                            <h4 class="text-xl font-bold text-white mb-3">{{ p.nombre }}</h4>
+                            
+                            <div class="mb-4">
+                                <span class="text-3xl font-black text-emerald-400 modal-price" data-mensual="{{ p.precio_mensual|floatformat:0 }}" data-anual="{{ p.precio_anual|floatformat:0 }}">
+                                    ${{ p.precio_mensual|floatformat:0 }}
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-slate-400 flex-grow">{{ p.descripcion }}</p>
+                        </div>
                     {% endfor %}
-                </select>
-            </div>
+                </div>
 
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">NOMBRE O IDENTIFICADOR DEL NEGOCIO</label>
-                <input type="text" id="input-subdomain" oninput="actualizarPrevisualizacion()" placeholder="ej: loderosa" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white" required>
-            </div>
+                <hr class="border-slate-800 my-2">
 
-            <!-- Campo oculto que se enviará al backend con la URL completa generada -->
-            <input type="hidden" name="url_sistema" id="hidden-url-sistema">
+                <!-- Configuración del Subdominio (Corregido para Móvil) -->
+                <div class="bg-slate-900/60 border border-slate-700/50 p-5 md:p-6 rounded-xl">
+                    <label class="block text-xs font-mono text-blue-400 mb-3">IDENTIFICADOR DEL NEGOCIO (SIN ESPACIOS)</label>
+                    <div class="flex flex-col sm:flex-row gap-4 items-center">
+                        <input type="text" id="input-subdomain" oninput="actualizarPrevisualizacion()" placeholder="ej: minegocio" class="w-full sm:w-1/2 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white focus:outline-none focus:border-blue-500 text-sm transition-colors" required>
+                        <div class="w-full sm:w-1/2 bg-slate-950 border border-blue-500/30 p-3.5 rounded-xl flex items-center justify-center">
+                            <span id="preview-url" class="text-sm font-mono text-blue-400 break-all">selecciona_plan.corexit.tech</span>
+                        </div>
+                    </div>
+                </div>
 
-            <!-- Caja de Previsualización en tiempo real -->
-            <div class="bg-slate-900/80 border border-blue-500/30 p-3 rounded-xl flex flex-col gap-1">
-                <span class="text-[10px] font-mono text-slate-400 uppercase">URL previsualizada de tu sistema:</span>
-                <span id="preview-url" class="text-xs font-mono text-blue-400 break-all">---.corexit.tech</span>
-            </div>
-
-            <div class="flex justify-end gap-3 mt-4">
-                <button type="button" onclick="closeModal('modal-servicio')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">Cancelar</button>
-                <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold">Confirmar Solicitud</button>
-            </div>
-        </form>
+                <!-- Botones de Acción -->
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" onclick="closeModal('modal-servicio')" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-medium transition-colors">Cancelar</button>
+                    <button type="submit" id="btn-submit-plan" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold transition-colors opacity-50 cursor-not-allowed flex items-center gap-2" disabled>
+                        Confirmar y Pagar
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-
-<script>
-    function actualizarPrevisualizacion() {
-        const select = document.getElementById('select-servicio');
-        const selectedOption = select.options[select.selectedIndex];
-        const prefijo = selectedOption ? selectedOption.getAttribute('data-prefijo') || 'app' : 'app';
-        
-        let subdomain = document.getElementById('input-subdomain').value.trim().toLowerCase();
-        // Limpiamos espacios o caracteres extraños para que sea una URL válida
-        subdomain = subdomain.replace(/[^a-z0-9]/g, '');
-
-        const domainFinal = subdomain ? `${prefijo}${subdomain}.corexit.tech` : `${prefijo}negocio.corexit.tech`;
-        
-        document.getElementById('preview-url').textContent = domainFinal;
-        document.getElementById('hidden-url-sistema').value = `https://${domainFinal}`;
-    }
-
-    // Ejecutar al abrir el modal para inicializar
-    document.addEventListener("DOMContentLoaded", actualizarPrevisualizacion);
-</script>
 
     <script>
-        function openModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('flex'); document.getElementById(id).classList.add('hidden'); }
-    </script>
+        let prefijoSeleccionado = '';
 
-    <footer class="text-center py-6 text-slate-600 text-xs">
-        © 2026 CoreX IT Solutions - Panel de Cliente
-    </footer>
+        // Formateador de moneda para JS
+        const formatMoney = (valor) => {
+            return '$' + Number(valor).toLocaleString('es-AR');
+        };
+
+        function openModal(id) { 
+            document.getElementById(id).classList.remove('hidden'); 
+            document.getElementById(id).classList.add('flex'); 
+            
+            // Inicializar precios al abrir (asegura el punto de miles)
+            if(id === 'modal-servicio') {
+                const freq = document.getElementById('hidden-frecuencia').value;
+                setModalFreq(freq);
+            }
+        }
+        
+        function closeModal(id) { 
+            document.getElementById(id).classList.remove('flex'); 
+            document.getElementById(id).classList.add('hidden'); 
+        }
+
+        function setModalFreq(freq) {
+            const btnMensual = document.getElementById('btn-modal-mensual');
+            const btnAnual = document.getElementById('btn-modal-anual');
+            const hiddenFreq = document.getElementById('hidden-frecuencia');
+            const prices = document.querySelectorAll('.modal-price');
+
+            hiddenFreq.value = freq;
+
+            if(freq === 'mensual') {
+                btnMensual.className = 'px-5 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all shadow-sm';
+                btnAnual.className = 'px-5 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all';
+                prices.forEach(p => p.innerText = formatMoney(p.dataset.mensual));
+            } else {
+                btnAnual.className = 'px-5 py-2 text-xs font-bold rounded-lg bg-blue-600 text-white transition-all shadow-sm';
+                btnMensual.className = 'px-5 py-2 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all';
+                prices.forEach(p => p.innerText = formatMoney(p.dataset.anual));
+            }
+        }
+
+        function seleccionarPlan(cardElement, planId, prefijo) {
+            document.querySelectorAll('.plan-card').forEach(card => card.classList.remove('active'));
+            cardElement.classList.add('active');
+            
+            document.getElementById('hidden-plan-id').value = planId;
+            prefijoSeleccionado = prefijo;
+            
+            const btnSubmit = document.getElementById('btn-submit-plan');
+            btnSubmit.disabled = false;
+            btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            actualizarPrevisualizacion();
+        }
+
+        function actualizarPrevisualizacion() {
+            if (!prefijoSeleccionado) return;
+
+            let subdomain = document.getElementById('input-subdomain').value.trim().toLowerCase();
+            subdomain = subdomain.replace(/[^a-z0-9]/g, '');
+
+            const domainFinal = subdomain ? `${prefijoSeleccionado}${subdomain}.corexit.tech` : `${prefijoSeleccionado}negocio.corexit.tech`;
+            
+            document.getElementById('preview-url').textContent = domainFinal;
+            document.getElementById('hidden-url-sistema').value = `https://${domainFinal}`;
+        }
+    </script>
 </body>
 </html>

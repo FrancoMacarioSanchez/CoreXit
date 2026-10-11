@@ -18,11 +18,20 @@
             border: 1px solid rgba(59, 130, 246, 0.15);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
+        /* Estilo personalizado para el scrollbar en el textarea */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body class="min-h-screen w-screen flex items-center justify-center relative py-10 px-4">
     
-    <div class="w-full max-w-md glass-panel p-8 rounded-2xl">
+    <!-- Ampliamos a max-w-lg para acomodar mejor el formulario de registro -->
+    <div class="w-full max-w-lg glass-panel p-8 rounded-2xl">
         <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white">Portal CoreX</h1>
             <p class="text-slate-400 text-xs mt-1">Gestión de sistemas y clientes</p>
@@ -30,7 +39,7 @@
 
         {% if login_form.errors or registro_form.errors %}
             <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl mb-4 text-sm text-center">
-                Por favor, verificá los datos ingresados.
+                Por favor, verificá los datos ingresados. Revisa que el usuario no exista y las contraseñas coincidan.
             </div>
         {% endif %}
 
@@ -41,19 +50,16 @@
         </div>
 
         <!-- Formulario de Login -->
-        <!-- Formulario de Login -->
         <form method="post" id="form-login" class="flex flex-col gap-4">
             {% csrf_token %}
             <input type="hidden" name="action_login" value="1">
             
             <div>
                 <label class="block text-xs font-mono text-blue-400 mb-2">USUARIO</label>
-                <!-- Renderizado manual del input de usuario con Tailwind -->
                 <input type="text" name="username" required placeholder="Tu usuario" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
             </div>
             <div>
                 <label class="block text-xs font-mono text-blue-400 mb-2">CONTRASEÑA</label>
-                <!-- Renderizado manual del input de contraseña con Tailwind -->
                 <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
             </div>
             
@@ -63,37 +69,77 @@
         </form>
 
         <!-- Formulario de Registro (Oculto por defecto) -->
-        <form method="post" id="form-register" class="flex flex-col gap-3 hidden">
+        <form method="post" id="form-register" class="flex flex-col gap-4 hidden">
             {% csrf_token %}
             <input type="hidden" name="action_register" value="1">
             
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">USUARIO</label>
-                {{ registro_form.username }}
+            <!-- Datos de Usuario -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-mono text-blue-400 mb-1">USUARIO</label>
+                    <input type="text" name="username" required placeholder="Ej: perez_admin" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-blue-400 mb-1">CONTRASEÑA</label>
+                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">CORREO ELECTRÓNICO</label>
-                {{ registro_form.email }}
+
+            <!-- Datos de Contacto -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-mono text-blue-400 mb-1">NOMBRE COMPLETO</label>
+                    <input type="text" name="nombre" required placeholder="Tu nombre" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-blue-400 mb-1">CORREO ELECTRÓNICO</label>
+                    <input type="email" name="email" required placeholder="mail@ejemplo.com" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">EMPRESA (Opcional)</label>
-                {{ registro_form.empresa }}
+
+            <!-- Datos Fiscales -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-mono text-blue-400 mb-1">RAZÓN SOCIAL / EMPRESA</label>
+                    <input type="text" name="empresa" placeholder="Nombre de tu negocio" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-blue-400 mb-1">TELÉFONO</label>
+                    <input type="text" name="telefono" placeholder="+54 9 11..." class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">TELÉFONO (Opcional)</label>
-                {{ registro_form.telefono }}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-mono text-blue-400 mb-1">CUIT / CUIL</label>
+                    <input type="text" name="cuit_cuil" required placeholder="20-12345678-9" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-blue-400 mb-1">CONDICIÓN FISCAL</label>
+                    <select name="condicion_fiscal" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm appearance-none">
+                        <option value="consumidor_final">Consumidor Final</option>
+                        <option value="monotributo">Monotributo</option>
+                        <option value="responsable_inscripto">Responsable Inscripto</option>
+                        <option value="exento">Sujeto Exento</option>
+                    </select>
+                </div>
             </div>
+
             <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">CONTRASEÑA</label>
-                <input type="password" name="password1" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
+                <label class="block text-xs font-mono text-blue-400 mb-1">DOMICILIO FISCAL</label>
+                <textarea name="domicilio_fiscal" rows="2" placeholder="Calle, Número, Localidad, Provincia, CP" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm resize-none"></textarea>
             </div>
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">CONFIRMAR CONTRASEÑA</label>
-                <input type="password" name="password2" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
+
+            <!-- Términos y Condiciones -->
+            <div class="flex items-start gap-2 mt-2">
+                <input type="checkbox" name="aceptar_terminos" id="aceptar_terminos" required class="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-900/60 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900">
+                <label for="aceptar_terminos" class="text-xs text-slate-300">
+                    He leído y acepto los <a href="#" target="_blank" class="text-emerald-400 hover:underline">Términos y Condiciones</a> y las Políticas de Privacidad de CoreX.
+                </label>
             </div>
             
             <button type="submit" class="mt-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] text-sm">
-                Crear Cuenta de Cliente
+                Crear Cuenta y Continuar
             </button>
         </form>
 

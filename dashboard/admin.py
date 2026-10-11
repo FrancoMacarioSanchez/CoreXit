@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (
     ClienteProfile,
+    PlanServicio,
     Servicio,
     Contratacion,
     Membresia,
@@ -14,3 +15,4 @@ admin.site.register(Contratacion)
 admin.site.register(Membresia)
 admin.site.register(Ticket)
 admin.site.register(TicketMensaje)
+admin.site.register(PlanServicio)
