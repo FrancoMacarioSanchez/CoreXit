@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paquete Legal Integral - Términos, SLA y Privacidad</title>
+    <style>
+        :root {
+            --primary-color: #1e3a8a; /* Azul corporativo */
+            --secondary-color: #3b82f6;
+            --text-color: #334155;
+            --bg-color: #f1f5f9;
+            --border-color: #e2e8f0;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        h1 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .last-updated {
+            font-style: italic;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        h2 {
+            color: var(--primary-color);
+            margin-top: 40px;
+            font-size: 1.4rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+        h3 {
+            color: #0f172a;
+            margin-top: 25px;
+            font-size: 1.15rem;
+        }
+        p {
+            margin-bottom: 16px;
+            text-align: justify;
+        }
+        ul, ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+        li {
+            margin-bottom: 8px;
+            text-align: justify;
+        }
+        strong {
+            color: #0f172a;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f8fafc;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        .legal-notice {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Términos y Condiciones y Política de Privacidad</h1>
+            <p class="last-updated">Última actualización: Octubre de 2026</p>
+        </header>
+
+        <main>
+            <!-- PARTE I -->
+            <section>
+                <h2>PARTE I: TÉRMINOS Y CONDICIONES GENERALES DE USO Y CONTRATACIÓN DEL SERVICIO (SaaS)</h2>
+                <p>Los presentes Términos y Condiciones Generales (en adelante, los "Términos" o el "Contrato") regulan el acceso, suscripción y uso de la plataforma de software como servicio (SaaS), aplicaciones web, aplicaciones móviles, módulos de punto de venta (POS) y/o interfaces de programación de aplicaciones (APIs) de facturación electrónica y gestión comercial (en adelante, la "Plataforma" o el "Sistema"), titularidad de <strong>FRANCO MACARIO SANCHEZ, CUIT N° 20446699696</strong>, inscripto ante la Agencia de Recaudación y Control Aduanero (ARCA) bajo el código de actividad 620100 (Servicios de consultores en informática y suministros de programas de informática), con domicilio legal constituido en Ingeniero Huergo 929, Villa de Mayo, Malvinas Argentinas, Provincia de Buenos Aires (en adelante, el "PROVEEDOR"), operando bajo las denominaciones comerciales [FacturAR / CoreXIT / NexoRetail / NOMBRE COMERCIAL].</p>
+                <p>Cualquier persona humana o jurídica que se registre, contrate, integre o utilice la Plataforma (en adelante, el "CLIENTE" o el "USUARIO") declara haber leído, comprendido y aceptado de manera libre, expresa e incondicional la totalidad de estos Términos, así como sus Anexos (Acuerdo de Nivel de Servicio y Política de Privacidad), los cuales constituyen un contrato válido y plenamente vinculante en los términos de los artículos 957, 959, 971, 1106 y concordantes del Código Civil y Comercial de la Nación Argentina (CCyCN).</p>
+
+                <h3>1. DEFINICIONES TÉCNICAS Y LEGALES</h3>
+                <p>A los efectos del presente Contrato, los términos que se detallan a continuación tendrán el siguiente significado:</p>
+                <ul>
+                    <li><strong>ARCA:</strong> Agencia de Recaudación y Control Aduanero de la República Argentina (continuadora jurídica de la ex Administración Federal de Ingresos Públicos - AFIP, conforme Decreto 953/2024 y normativa complementaria).</li>
+                    <li><strong>CAE / CAEA:</strong> Código de Autorización Electrónico / Código de Autorización Electrónico Anticipado otorgado por ARCA para validar comprobantes fiscales.</li>
+                    <li><strong>Web Services (WS):</strong> Interfaces de comunicación electrónica provistas por ARCA (incluyendo, entre otros, WSAA de Autenticación y Autorización, WSFEv1 de Factura Electrónica, WSFEX, WSMTXCA y Padrones).</li>
+                    <li><strong>Certificados Digitales (.CRT y .KEY):</strong> Archivos criptográficos basados en el estándar X.509 y claves privadas RSA generadas por el CLIENTE o delegadas para autenticar peticiones ante el WSAA de ARCA.</li>
+                    <li><strong>Entorno Aislado (Tenant):</strong> Espacio lógico y esquema de base de datos independiente asignado al CLIENTE dentro de la arquitectura multi-inquilino (multi-tenant) de la Plataforma.</li>
+                    <li><strong>Modo Solo Lectura:</strong> Estado operativo restringido de la cuenta del CLIENTE en el cual se bloquea la emisión de nuevos comprobantes y peticiones de escritura por API, manteniéndose habilitada únicamente la visualización y exportación de comprobantes históricos.</li>
+                </ul>
+
+                <h3>2. NATURALEZA COMERCIAL DE LA RELACIÓN (CONTRATO B2B) Y CAPACIDAD</h3>
+                <p><strong>2.1. Destino Exclusivamente Profesional:</strong> La Plataforma es una herramienta informática empresarial diseñada exclusivamente para fines comerciales, industriales, profesionales o tributarios.</p>
+                <p><strong>2.2. Exclusión del Régimen de Defensa del Consumidor:</strong> El CLIENTE declara bajo juramento que contrata e integra el Sistema de manera directa o indirecta a sus procesos de producción, comercialización de bienes o prestación de servicios a terceros. En consecuencia, las Partes reconocen expresamente que la presente relación jurídica constituye un contrato comercial entre empresas/profesionales (B2B) regido por las normas del Código Civil y Comercial de la Nación, no resultando aplicable la Ley N° 24.240 de Defensa del Consumidor ni sus modificatorias, por no revestir el CLIENTE el carácter de destinatario o consumidor final (art. 1° Ley 24.240 y art. 1092 CCyCN).</p>
+                <p><strong>2.3. Capacidad y Representación:</strong> Quien complete el registro en nombre de una persona jurídica o comercio declara bajo juramento contar con facultades suficientes de representación legal o mandato para obligar a dicha entidad.</p>
+
+                <h3>3. OBJETO DEL SERVICIO Y ALCANCE DE LA LICENCIA SaaS</h3>
+                <p><strong>3.1. Otorgamiento de Licencia:</strong> Sujeto al pago oportuno del abono correspondiente y al estricto cumplimiento de estos Términos, el PROVEEDOR otorga al CLIENTE una licencia de uso sobre la Plataforma de carácter no exclusiva, intransferible, no sublicenciable, revocable, limitada al territorio de la República Argentina y temporal, bajo la modalidad Software as a Service (SaaS), accesible de forma remota a través de Internet.</p>
+                <p><strong>3.2. Modalidades de Consumo:</strong> Según el plan comercial suscripto, el CLIENTE podrá utilizar la Plataforma mediante: (i) Interfaz gráfica web o aplicación móvil; y/o (ii) Integración programática mediante el consumo del Microservicio / API REST provisto por el PROVEEDOR desde sistemas de punto de venta (POS), e-commerce o ERPs propios o de terceros.</p>
+
+                <h3>4. INTEROPERABILIDAD CON ARCA, DELEGACIÓN Y CERTIFICADOS DIGITALES</h3>
+                <p><strong>4.1. Rol de Intermediario Tecnológico:</strong> El PROVEEDOR actúa única y exclusivamente como proveedor de infraestructura de software y canal técnico de comunicación con los Web Services de ARCA. El PROVEEDOR no ejerce funciones de contador público, asesor impositivo ni auditor fiscal, ni valida la procedencia tributaria de las operaciones del CLIENTE.</p>
+                <p><strong>4.2. Esquemas de Vinculación Técnica:</strong> Para operar la facturación electrónica, el Sistema soporta dos modalidades de conexión con ARCA, según la configuración elegida o el plan contratado por el CLIENTE:</p>
+                <ul>
+                    <li><strong>a) Delegación de Web Services en ARCA:</strong> El CLIENTE delega a favor de la CUIT del PROVEEDOR la autorización para operar los Web Services de facturación electrónica desde el "Administrador de Relaciones de Clave Fiscal" de ARCA. El CLIENTE reconoce y acepta que dicha delegación tiene como único mandato técnico permitir que la Plataforma solicite Tickets de Acceso (TA) y Códigos de Autorización Electrónicos (CAE) en nombre y por cuenta y orden exclusiva del CLIENTE.</li>
+                    <li><strong>b) Alojamiento de Certificados Digitales Propios (.CRT y .KEY):</strong> Cuando el CLIENTE opte por generar y subir sus propios certificados digitales X.509 (.crt) y sus respectivas claves privadas (.key), autoriza expresamente al PROVEEDOR a almacenarlos de forma encriptada en sus servidores y memorias caché seguras (incluyendo repositorios temporales de Tickets de Acceso) con el único propósito de firmar digitalmente las peticiones automatizadas instruidas por el CLIENTE ante ARCA.</li>
+                </ul>
+                <p><strong>4.3. Custodia de Clave Fiscal y Puntos de Venta:</strong> En ningún caso el PROVEEDOR solicitará ni almacenará la Clave Fiscal general de ARCA del CLIENTE. Es obligación indelegable del CLIENTE: (i) Dar de alta y vincular correctamente los Puntos de Venta (RECE / Web Services) en el portal de ARCA; (ii) Mantener actualizados sus domicilios fiscales y actividades económicas; y (iii) Revocar las delegaciones o dar de baja los certificados digitales en el portal de ARCA de forma inmediata una vez extinguido el presente Contrato.</p>
+
+                <h3>5. EXCLUSIÓN DE RESPONSABILIDAD TRIBUTARIA, FISCAL Y FINANCIERA</h3>
+                <p><strong>5.1. Exactitud de los Comprobantes:</strong> El CLIENTE es el único y exclusivo responsable ante ARCA, organismos recaudadores provinciales (ARBA, AGIP, Rentas, etc.), municipales y ante sus propios compradores por la veracidad, legalidad y exactitud de los datos consignados en cada comprobante electrónico emitido (incluyendo: categoría tributaria, tipo de comprobante Factura A/B/C/M/E, Notas de Crédito/Débito, alícuotas de IVA, percepciones, retenciones, impuestos internos, fechas de devengamiento, identificación del receptor y Ley de Transparencia Fiscal al Consumidor N° 27.743 cuando corresponda).</p>
+                <p><strong>5.2. Contingencias de los Servidores de ARCA:</strong> El otorgamiento del CAE y la consulta de padrones dependen exclusivamente de la disponibilidad operativa de los servidores de ARCA. El PROVEEDOR no será responsable bajo ninguna circunstancia por demoras, caídas, interrupciones, mantenimientos programados o de emergencia, rechazos de validación o errores originados en los sistemas de ARCA.</p>
+                <p><strong>5.3. Obligación de Método Alternativo de Respaldo:</strong> Conforme a las Resoluciones Generales de ARCA vigentes, el CLIENTE reconoce que, ante la eventual falta de disponibilidad de Internet, de la Plataforma o de los Web Services de ARCA, es su obligación contar con métodos alternativos de facturación de contingencia habilitados por el fisco (tales como el facturador "Comprobantes en Línea", aplicación "Facturador Móvil", CAEA o controlador fiscal de respaldo). El PROVEEDOR no responderá por multas, clausuras o sanciones derivadas de la imposibilidad temporal de emitir comprobantes a través del Sistema.</p>
+                <p><strong>5.4. Integración con Billeteras Virtuales, Bancos y Pasarelas de Pago:</strong> En caso de que la Plataforma ofrezca integraciones informáticas con medios de cobro electrónico, códigos QR interoperables o pasarelas de pago (incluyendo, sin limitación, Cuenta DNI / Clave DNI del Banco de la Provincia de Buenos Aires, Mercado Pago, MODO u otras entidades financieras o proveedores de servicios de pago - PSP), el PROVEEDOR actúa únicamente como puente técnico de software. El PROVEEDOR no capta, intermedia, retiene ni administra fondos del CLIENTE, y resulta totalmente ajeno a rechazos de tarjetas, desconocimientos de compra (contracargos), demoras en la liquidación de saldos, comisiones financieras o retenciones impositivas practicadas por dichas entidades.</p>
+
+                <h3>6. CUENTAS DE USUARIO, SUB-USUARIOS Y AUDITORÍA DE ACCESO</h3>
+                <p><strong>6.1. Credenciales y Tokens de API:</strong> El CLIENTE es el único guardián de sus contraseñas de acceso, claves de API (API Keys) y tokens de autenticación (JWT / Bearer Tokens). Toda instrucción de emisión o anulación de comprobantes cursada mediante credenciales válidas del CLIENTE se considerará, sin admitir prueba en contrario, realizada de forma auténtica por el CLIENTE.</p>
+                <p><strong>6.2. Perfiles Secundarios (Cajeros, Empleados y Desarrolladores):</strong> Si el CLIENTE crea o habilita cuentas secundarias dentro de su entorno para empleados, cajeros, vendedores, contadores o desarrolladores externos, asume la responsabilidad civil, comercial y laboral total por los actos, errores de facturación, anulaciones o accesos que dichos sub-usuarios realicen (art. 1753 del CCyCN).</p>
+                <p><strong>6.3. Validez de la Firma Electrónica (Clickwrap y Logs):</strong> De conformidad con los artículos 286 y 288 del CCyCN y la Ley N° 25.506 de Firma Digital, las Partes acuerdan que la aceptación mediante casillas de verificación (checkboxes), botones de confirmación y el registro electrónico en las bases de datos del PROVEEDOR de la dirección IP, fecha y hora (timestamp), identificador de usuario y versión de los Términos aceptados, constituyen plena prueba y firma electrónica válida a todos los efectos legales.</p>
+
+                <h3>7. PROPIEDAD INTELECTUAL Y PROHIBICIONES DE USO</h3>
+                <p><strong>7.1. Titularidad Exclusiva:</strong> Todos los derechos de propiedad intelectual, industrial y secretos comerciales sobre el código fuente, código objeto, arquitectura multi-inquilino (multi-tenant), esquemas de bases de datos, diseño de interfaz (UI/UX), documentación técnica de API, algoritmos, nombres comerciales y marcas asociadas a la Plataforma son propiedad exclusiva del PROVEEDOR, protegidos por la Ley N° 11.723 de Propiedad Intelectual, la Ley N° 22.362 de Marcas y tratados internacionales.</p>
+                <p><strong>7.2. Restricciones:</strong> Queda terminantemente prohibido al CLIENTE: (i) Realizar ingeniería inversa, descompilar, desensamblar o intentar extraer el código fuente de la Plataforma; (ii) Ceder, alquilar, revender o sublicenciar el acceso al Sistema o a la API a terceros con un CUIT distinto al registrado en su plan, salvo que haya contratado expresamente un plan multi-empresa o de revendedor autorizado; y (iii) Utilizar la Plataforma para emitir comprobantes apócrifos, simular operaciones inexistentes o cometer ilícitos tributarios reprimidos por el Régimen Penal Tributario (Ley N° 27.430).</p>
+
+                <h3>8. CONDICIONES COMERCIALES, PRECIOS Y AJUSTES DE TARIFAS</h3>
+                <p><strong>8.1. Abonos y Ciclos de Facturación:</strong> El acceso a la Plataforma se abona por adelantado en forma mensual o anual, según el plan seleccionado, más los cargos adicionales que pudieran corresponder por exceso en el cupo mensual de comprobantes emitidos, puntos de venta o usuarios activos.</p>
+                <p><strong>8.2. Períodos de Prueba (Free Trial / Freemium):</strong> Si el PROVEEDOR otorgase un período de prueba gratuito o un nivel de uso sin cargo, el mismo se brinda sin garantía de continuidad ni nivel de servicio (SLA), pudiendo el PROVEEDOR modificar sus límites o requerir el paso a un plan pago en cualquier momento previa notificación.</p>
+                <p><strong>8.3. Actualización de Precios por Inflación o Costos:</strong> Atento a las variaciones macroeconómicas, cambiarias y de costos de infraestructura tecnológica en la República Argentina, el PROVEEDOR se reserva el derecho de actualizar periódicamente las tarifas de suscripción. Toda modificación de precios será comunicada al CLIENTE por correo electrónico o mediante notificación destacada dentro de la Plataforma con una antelación mínima de quince (15) días corridos a su entrada en vigencia. Si el CLIENTE no aceptara el nuevo valor, podrá solicitar la baja sin cargo alguno antes del inicio del nuevo período facturable; la continuidad en el uso del Sistema vencido dicho plazo implicará la aceptación de pleno derecho de las nuevas tarifas.</p>
+
+                <h3>9. MORA, MODO "SOLO LECTURA" Y POLÍTICA DE RETENCIÓN DE DATOS</h3>
+                <p><strong>9.1. Mora Automática:</strong> La falta de pago íntegro y oportuno de cualquier factura o abono a su vencimiento producirá la mora automática y de pleno derecho del CLIENTE, sin necesidad de interpelación judicial o extrajudicial previa (art. 886 del CCyCN). Los saldos impagos devengarán un interés moratorio y punitorio equivalente a una vez y media (1.5x) la tasa activa del Banco de la Nación Argentina para operaciones de descuento de documentos comerciales a treinta (30) días, desde la fecha de vencimiento hasta su efectivo pago.</p>
+                <p><strong>9.2. Suspensión Operativa y Paso a "Modo Solo Lectura":</strong> Transcurridos [CANTIDAD DE DÍAS, EJ: 7] días corridos desde la fecha de vencimiento del abono sin que se registre la cancelación de la deuda, el PROVEEDOR quedará automáticamente facultado para suspender las funcionalidades activas del Sistema, bloqueando: (i) La emisión y autorización de nuevos comprobantes ante ARCA; (ii) El registro de nuevas ventas o movimientos; y (iii) Las peticiones de escritura a través de la API. Sin perjuicio de ello, durante el período de suspensión temporal, la cuenta del CLIENTE permanecerá habilitada bajo la modalidad de "Solo Lectura", permitiéndole iniciar sesión al único y exclusivo efecto de visualizar, consultar y descargar sus comprobantes históricos y reportes ya emitidos, garantizando así que el CLIENTE pueda cumplir con requerimientos de inspección o fiscalización de ARCA.</p>
+                <p><strong>9.3. Baja Definitiva por Mora Prolongada o Rescisión:</strong> Si la situación de mora se extendiera por un plazo superior a treinta (30) días corridos desde el vencimiento original, el PROVEEDOR podrá resolver el Contrato de pleno derecho y dar de baja la cuenta. Asimismo, cualquiera de las Partes podrá rescindir el servicio sin expresión de causa en cualquier momento, sin que ello dé derecho a reembolso por los días restantes del mes ya abonado.</p>
+                <p><strong>9.4. Ventana de Exportación y Purga Definitiva de Datos:</strong> Producida la baja del servicio (ya sea por decisión del CLIENTE o por mora mayor a 30 días), el PROVEEDOR otorgará una ventana final de gracia de treinta (30) días corridos en "Modo Solo Lectura" para que el CLIENTE exporte y descargue la totalidad de sus comprobantes, archivos XML/PDF y bases de datos. Vencido dicho plazo de treinta (30) días, el PROVEEDOR procederá a la eliminación, destrucción y purga definitiva e irreversible de todos los datos, esquemas de base de datos y certificados digitales del CLIENTE alojados en sus servidores. El CLIENTE reconoce que es su obligación legal exclusiva descargar y conservar el respaldo de su documentación contable y fiscal por el plazo de diez (10) años exigido por el artículo 328 del CCyCN y las normas de ARCA, liberando al PROVEEDOR de toda responsabilidad una vez vencida la ventana de exportación.</p>
+
+                <h3>10. INDEMNIDAD DEL PROVEEDOR</h3>
+                <p>El CLIENTE se obliga a mantener indemne, defender y resarcir al PROVEEDOR ante cualquier reclamo administrativo, extrajudicial o judicial, multa, intimación, inspección, embargo, daño, costo y honorarios legales (incluyendo costas judiciales) promovidos por ARCA, fiscos provinciales o municipales, consumidores finales, compradores del CLIENTE, empleados del CLIENTE o cualquier tercero, que tengan origen o vinculación con: (i) El contenido, montos o validez tributaria de los comprobantes emitidos por el CLIENTE; (ii) El incumplimiento de normativas fiscales, laborales o de defensa del consumidor por parte del CLIENTE frente a sus propios compradores; o (iii) El uso indebido o fraudulento de la Plataforma o de su API.</p>
+
+                <h3>11. LIMITACIÓN DE RESPONSABILIDAD Y FUERZA MAYOR</h3>
+                <p><strong>11.1. Suministro "Tal Cual Es" (As Is):</strong> El software se provee "tal cual es" y "según disponibilidad". El PROVEEDOR no garantiza que el Sistema se adapte a necesidades particulares no especificadas en la documentación comercial ni que esté libre de interrupciones.</p>
+                <p><strong>11.2. Caso Fortuito y Fuerza Mayor Tecnológica:</strong> El PROVEEDOR no será responsable por retrasos o fallas en el servicio derivados de causas fuera de su control razonable (art. 1730 CCyCN), incluyendo: caídas de los Web Services de ARCA, cortes de fibra óptica o redes troncales de Internet, fallas masivas en proveedores de infraestructura en la nube de terceros (ej. AWS, Google Cloud, Vercel, Turso, Firebase, servidores de bases de datos), ataques de denegación de servicio distribuido (DDoS) o cambios normativos intempestivos dictados por el Poder Ejecutivo o ARCA que obliguen a reestructurar los sistemas.</p>
+                <p><strong>11.3. Exclusión de Daños Indirectos y Lucro Cesante:</strong> En ningún caso el PROVEEDOR responderá frente al CLIENTE o terceros por daños indirectos, mediatos, imprevistos, lucro cesante, pérdida de ventas, pérdida de chance comercial, daño a la imagen comercial o pérdida de datos (arts. 1728 y 1743 del CCyCN).</p>
+                <p><strong>11.4. Tope Indemnizatorio Máximo (Liability Cap):</strong> En cualquier supuesto en que una sentencia judicial firme determine la responsabilidad contractual o extracontractual del PROVEEDOR, la responsabilidad económica total, máxima y acumulada del PROVEEDOR por todo concepto estará estrictamente limitada a una suma equivalente al monto total efectivamente abonado por el CLIENTE en concepto de suscripción del Sistema durante los tres (3) meses inmediatos anteriores al acaecimiento del hecho generador del reclamo.</p>
+
+                <h3>12. CONFIDENCIALIDAD</h3>
+                <p>Ambas Partes se comprometen a preservar la más estricta confidencialidad respecto de toda la información comercial, tributaria, listas de precios, carteras de clientes, claves criptográficas y arquitectura técnica a la que tengan acceso con motivo de la ejecución de este Contrato. Esta obligación subsistirá aún después de finalizada la relación contractual por un plazo de cinco (5) años.</p>
+
+                <h3>13. MODIFICACIONES AL CONTRATO, LEY APLICABLE Y JURISDICCIÓN</h3>
+                <p><strong>13.1. Actualización de Términos:</strong> El PROVEEDOR podrá modificar estos Términos notificándolo al CLIENTE con al menos quince (15) días corridos de anticipación a través del correo electrónico registrado o mediante alerta en la Plataforma.</p>
+                <p><strong>13.2. Divisibilidad:</strong> Si alguna cláusula de este Contrato fuera declarada nula o inaplicable, ello no afectará la validez de las restantes disposiciones, las cuales conservarán su plena vigencia.</p>
+                <p><strong>13.3. Jurisdicción y Competencia:</strong> Este Contrato se rige íntegramente por las leyes de la República Argentina. Para cualquier divergencia, conflicto o reclamo derivado de la interpretación, validez, ejecución, cobro de pesos o incumplimiento del presente, las Partes se someten a la jurisdicción y competencia exclusiva de los Tribunales Ordinarios en lo Civil y Comercial del Departamento Judicial de [INDICAR DEPARTAMENTO JUDICIAL EN PBA, EJ: SAN MARTÍN / SAN ISIDRO], Provincia de Buenos Aires, renunciando de forma expresa e irrevocable a cualquier otro fuero o jurisdicción que pudiera corresponderles en razón de las personas o del territorio, incluso el Fuero Federal.</p>
+            </section>
+
+            <!-- PARTE II -->
+            <section>
+                <h2>PARTE II: ANEXO I — ACUERDO DE NIVEL DE SERVICIO (SLA) Y POLÍTICA DE USO ACEPTABLE DE API</h2>
+                <p>El presente Anexo forma parte integrante de los Términos y Condiciones Generales y regula los estándares técnicos de disponibilidad, soporte y consumo de la API de facturación.</p>
+
+                <h3>1. COMPROMISO DE DISPONIBILIDAD (UPTIME)</h3>
+                <p><strong>1.1. Disponibilidad Mensual:</strong> El PROVEEDOR realizará sus mejores esfuerzos técnicos para asegurar una disponibilidad operativa de la Plataforma y del Microservicio de API del 99,0% (noventa y nueve por ciento) medido de forma mensual.</p>
+                <p><strong>1.2. Exclusiones del Cálculo de Uptime:</strong> No se computarán como tiempo de inactividad (Downtime) las interrupciones originadas por:</p>
+                <ul>
+                    <li>a) Ventanas de mantenimiento programado notificadas con al menos veinticuatro (24) horas de antelación (preferentemente en horario nocturno entre las 00:00 y las 06:00 hs ART).</li>
+                    <li>b) Caídas, lentitud, errores HTTP 500/502/503/504 o mantenimientos propios de los servidores y Web Services de ARCA (wsaa, wsfev1, etc.).</li>
+                    <li>c) Suspensiones de cuenta por mora o por violación de los límites de consumo (Rate Limiting).</li>
+                    <li>d) Problemas de conectividad local del CLIENTE o errores de integración en el código desarrollado por el propio CLIENTE.</li>
+                </ul>
+
+                <h3>2. POLÍTICA DE USO JUSTO Y LÍMITES DE CONSUMO DE API (RATE LIMITING)</h3>
+                <p><strong>2.1. Cuotas de Peticiones:</strong> A fin de proteger la estabilidad de la arquitectura multi-inquilino (multi-tenant) y evitar bloqueos de IP por parte de ARCA, el consumo de la API está sujeto a límites de velocidad (Rate Limits) según el plan contratado (por ejemplo, un máximo de [EJ: 60] peticiones por minuto por entorno/CUIT).</p>
+                <p><strong>2.2. Prohibición de Abuso de WSAA:</strong> Queda prohibido que los sistemas del CLIENTE fuercen la solicitud de nuevos Tickets de Acceso (TA) ante ARCA en cada petición individual; el CLIENTE debe respetar la gestión automatizada de caché de tokens implementada por el PROVEEDOR.</p>
+                <p><strong>2.3. Medidas de Mitigación:</strong> Ante picos de tráfico anómalos, bucles infinitos (infinite loops) en el software del CLIENTE o intentos de saturación, el Sistema devolverá respuestas HTTP 429 (Too Many Requests) y el PROVEEDOR podrá bloquear preventivamente el token de API o la dirección IP de origen hasta que el CLIENTE corrija el desperfecto técnico.</p>
+
+                <h3>3. SOPORTE TÉCNICO Y TIEMPOS DE RESPUESTA</h3>
+                <p><strong>Canales de Atención:</strong> El soporte técnico se brinda exclusivamente a través de [CORREO ELECTRÓNICO / TICKET EN PLATAFORMA / WHATSAPP DE SOPORTE] en días hábiles de lunes a viernes de [09:00 a 18:00] hs (hora oficial de Argentina).</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nivel de Severidad</th>
+                            <th>Criterio de Calificación</th>
+                            <th>Tiempo de Primera Respuesta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Severidad Crítica</strong></td>
+                            <td>Plataforma caída en su totalidad por causa propia del PROVEEDOR.</td>
+                            <td>Menor a 4 horas hábiles</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Severidad Media</strong></td>
+                            <td>Errores específicos en un punto de venta o dudas de integración de API.</td>
+                            <td>Menor a 24 horas hábiles</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Severidad Baja</strong></td>
+                            <td>Consultas generales de uso o sugerencias de mejoras.</td>
+                            <td>48 a 72 horas hábiles</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- PARTE III -->
+            <section>
+                <h2>PARTE III: ANEXO II — POLÍTICA DE PRIVACIDAD Y PROTECCIÓN DE DATOS PERSONALES (LEY N° 25.326)</h2>
+                <p>En cumplimiento de la Ley N° 25.326 de Protección de los Datos Personales, su Decreto Reglamentario N° 1558/2001 y las disposiciones de la Dirección Nacional de Protección de Datos Personales (Agencia de Acceso a la Información Pública - AAIP), se informa la presente Política de Privacidad.</p>
+
+                <h3>1. ROLES EN EL TRATAMIENTO DE DATOS (RESPONSABLE VS. ENCARGADO)</h3>
+                <p><strong>1.1. Datos del propio CLIENTE:</strong> Respecto de los datos de registro y facturación del CLIENTE que contrata el SaaS (nombre o razón social, CUIT, domicilio fiscal, teléfono, correo electrónico e historial de pagos del abono), el PROVEEDOR actúa como Responsable de la Base de Datos.</p>
+                <p><strong>1.2. Datos de Terceros cargados por el CLIENTE (Prestación de Servicios Informatizados - Art. 25 Ley 25.326):</strong> Respecto de los datos personales, comerciales y tributarios que el CLIENTE ingresa en la Plataforma o envía a través de la API para emitir facturas (datos de los compradores o consumidores del CLIENTE, tales como nombres, DNI/CUIT, domicilios, correos electrónicos y detalle de compras), el CLIENTE es el único Titular y Responsable de la Base de Datos, mientras que el PROVEEDOR actúa estrictamente como "Encargado del Tratamiento" (prestador de servicios de tratamiento de datos por cuenta de terceros, conforme al artículo 25 de la Ley N° 25.326).</p>
+
+                <h3>2. FINALIDAD DEL TRATAMIENTO Y AISLAMIENTO MULTI-TENANT</h3>
+                <p>Los datos alojados en la Plataforma serán utilizados única y exclusivamente para:</p>
+                <ul>
+                    <li>Procesar, autorizar ante ARCA y almacenar los comprobantes electrónicos emitidos por el CLIENTE.</li>
+                    <li>Gestionar el cobro de la suscripción, brindar soporte técnico y enviar notificaciones operativas o de seguridad.</li>
+                </ul>
+                <p>El PROVEEDOR implementa medidas de aislamiento lógico de datos (multi-tenant isolation) de modo tal que la información y los certificados de un CLIENTE resultan inaccesibles para otros usuarios de la Plataforma. El PROVEEDOR jamás venderá, alquilará ni cederá las bases de datos de clientes ni el historial de facturación a terceros con fines publicitarios o comerciales.</p>
+
+                <h3>3. SEGURIDAD TÉCNICA Y TRANSFERENCIA INTERNACIONAL (SUB-PROCESADORES)</h3>
+                <p><strong>3.1. Medidas de Seguridad:</strong> El PROVEEDOR adopta las medidas técnicas y organizativas de seguridad exigidas por la normativa vigente (incluyendo cifrado de comunicaciones mediante protocolos TLS/HTTPS, encriptación de claves privadas .key y certificados .crt, control de accesos y copias de seguridad periódicas).</p>
+                <p><strong>3.2. Alojamiento en la Nube (Transferencia Internacional):</strong> El CLIENTE presta su consentimiento expreso e informado para que los datos del Sistema sean alojados y procesados en servidores de infraestructura en la nube (Cloud Computing) de primer nivel internacional (tales como Amazon Web Services, Google Cloud Platform, Vercel, Turso, Firebase u otros proveedores equivalentes), los cuales pueden encontrarse ubicados fuera del territorio de la República Argentina (ej. Estados Unidos de América o Unión Europea), garantizando el PROVEEDOR la contratación de servicios que cumplan con estándares internacionales de seguridad de la información (ISO/IEC 27001, SOC 2).</p>
+
+                <h3>4. DERECHOS ARCO Y LEYENDA LEGAL OBLIGATORIA (AAIP)</h3>
+                <p>El titular de los datos personales podrá ejercer en cualquier momento los derechos de acceso, rectificación, actualización y supresión (Derechos ARCO) enviando una solicitud fehaciente al correo electrónico <a href="mailto:francomacariosanchez@gmail.com">francomacariosanchez@gmail.com</a>.</p>
+                
+                <div class="legal-notice">
+                    <p><strong>Cláusula obligatoria (Resolución AAIP N° 14/2018):</strong></p>
+                    <p>"LA AGENCIA DE ACCESO A LA INFORMACIÓN PÚBLICA, en su carácter de Órgano de Control de la Ley N° 25.326, tiene la atribución de atender las denuncias y reclamos que interpongan quienes resulten afectados en sus derechos por incumplimiento de las normas vigentes en materia de protección de datos personales."</p>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

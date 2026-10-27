@@ -528,8 +528,10 @@
                     
                     <ul class="space-y-4 text-sm text-neutral-300 mb-8 flex-grow">
                         <li class="flex items-start gap-3">
-                            <svg class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> 
-                            <span>{{ plan.descripcion }}</span>
+                                                        <span><!-- Usando la clase whitespace-pre-line de Tailwind -->
+<div class="mt-6 text-sm text-slate-300 whitespace-pre-line leading-7">
+    {{ plan.descripcion }}
+</div></span>
                         </li>
                     </ul>
                     
@@ -637,8 +639,8 @@
         <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-600">
             <p>&copy; 2026 FacturAR de CoreX. Todos los derechos reservados.</p>
             <div class="flex gap-4">
-                <a href="#" class="hover:text-neutral-400 transition-colors">Términos</a>
-                <a href="#" class="hover:text-neutral-400 transition-colors">Privacidad</a>
+                <a href="/dashboard/terminos-condiciones/" target="_blank" class="hover:text-neutral-400 transition-colors">Términos</a>
+                <a href="/dashboard/privacidad/" target="_blank" class="hover:text-neutral-400 transition-colors">Privacidad</a>
             </div>
         </div>
     </div>

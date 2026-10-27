@@ -1,5 +1,8 @@
+
+
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 
 
 class ClienteProfile(models.Model):
@@ -166,6 +169,10 @@ class Membresia(models.Model):
 
 
 class Ticket(models.Model):
+    TIPOS_CHOICES = [
+        ('soporte', 'Soporte al Cliente'),
+        ('desarrollo', 'Desarrollo / Tarea Interna'),
+    ]
     ESTADOS = [
         ('abierto', 'Abierto'),
         ('en_proceso', 'En Proceso'),
@@ -189,7 +196,7 @@ class Ticket(models.Model):
         max_length=20, choices=PRIORIDADES, default='media'
     )
     created_at = models.DateTimeField(auto_now_add=True)
-
+    tipo = models.CharField(max_length=20, choices=TIPOS_CHOICES, default='soporte')
     def __str__(self):
         return f"Ticket #{self.id} - {self.asunto}"
 
@@ -207,3 +214,46 @@ class TicketMensaje(models.Model):
 
     def __str__(self):
         return f'Mensaje de {self.autor.username} en Ticket #{self.ticket.id}'
+    
+class FacturaCliente(models.Model):
+    TIPO_CHOICES = [
+        ('A', 'Factura A'),
+        ('B', 'Factura B'),
+        ('C', 'Factura C'),
+    ]
+    ESTADO_PAGO_CHOICES = [
+        ('pendiente', 'Pendiente de Pago'),
+        ('pagado', 'Pagado'),
+        ('vencido', 'Vencido'),
+        ('anulado', 'Anulado'),
+    ]
+    METODO_PAGO_CHOICES = [
+        ('mercadopago', 'Mercado Pago'),
+        ('transferencia', 'Transferencia Bancaria'),
+        ('efectivo', 'Efectivo / Otro'),
+    ]
+
+    cliente = models.ForeignKey(ClienteProfile, on_delete=models.CASCADE, related_name='facturas')
+    contratacion = models.ForeignKey(Contratacion, on_delete=models.SET_NULL, null=True, blank=True, related_name='facturas')
+    
+    tipo_comprobante = models.CharField(max_length=2, choices=TIPO_CHOICES, default='C')
+    numero_comprobante = models.CharField(max_length=20, help_text="Ej: 00001-00000145")
+    cae = models.CharField(max_length=30, blank=True, null=True, help_text="CAE de ARCA (opcional)")
+    periodo_facturado = models.CharField(max_length=50, help_text="Ej: Octubre 2026")
+    
+    fecha_emision = models.DateField(default=timezone.now)
+    fecha_vencimiento = models.DateField()
+    fecha_pago = models.DateTimeField(blank=True, null=True)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    
+    estado = models.CharField(max_length=15, choices=ESTADO_PAGO_CHOICES, default='pendiente')
+    metodo_pago = models.CharField(max_length=20, choices=METODO_PAGO_CHOICES, blank=True, null=True)
+    referencia_pago = models.CharField(max_length=100, blank=True, null=True, help_text="ID de operación MP o comprobante")
+    link_pago = models.URLField(blank=True, null=True, help_text="Link de Mercado Pago si está pendiente")
+    archivo_pdf = models.FileField(upload_to='facturas_clientes/', blank=True, null=True)
+
+    class Meta:
+        ordering = ['-fecha_emision', '-id']
+
+    def __str__(self):
+        return f"Factura {self.tipo_comprobante} {self.numero_comprobante} - {self.cliente}"

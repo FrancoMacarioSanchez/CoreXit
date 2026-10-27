@@ -1,284 +1,404 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreXIT | Command Center</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { 
-            background-color: #f8fafc; 
-            color: #334155; 
-            font-family: 'Inter', sans-serif; 
-        }
-        .modern-card { 
-            background: #ffffff; 
-            border: 1px solid #f1f5f9; 
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03); 
-            border-radius: 1.25rem; 
-        }
-        .kanban-col {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    </style>
-</head>
-<body class="min-h-screen flex flex-col">
+{% extends "dashboard/base_portal.html" %}
 
-    <!-- Navbar de Staff unificado -->
-    {% include "dashboard/partials/navbar_staff.html" %}
+{% block title %}Backoffice Staff | CoreX{% endblock %}
+{% block header_title %}Panel Ejecutivo & Operaciones{% endblock %}
 
-    <!-- Contenido Principal -->
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 md:px-6 py-8 flex flex-col gap-8">
+{% block content %}
 
-        <!-- Barra de Acciones Rápidas y Buscador -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            
-            <!-- Buscador en tiempo real -->
-            <div class="w-full md:w-96 relative">
-                <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <input type="text" id="searchInput" onkeyup="filtrarClientes()" placeholder="Buscar cliente por nombre o empresa..." class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 shadow-sm transition-all">
-            </div>
-            
-            <!-- Botones de Acción Rápida -->
-            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                <a href="/admin/dashboard/servicio/add/" target="_blank" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                    Nuevo Servicio Global
-                </a>
-                <a href="/admin/dashboard/clienteprofile/add/" target="_blank" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                    Cargar Cliente Admin
-                </a>
-            </div>
+<!-- SECCIÓN 1: DASHBOARD & KPIS -->
+<div id="sec-resumen" class="portal-section space-y-8">
+    
+    <!-- 4 KPIs Principales -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">MRR (Facturación Mensual)</span>
+            <p class="text-3xl font-black mt-3 text-emerald-500">${{ kpis.mrr|default:"0"|floatformat:0 }}</p>
+            <p class="text-xs text-slate-400 mt-1">Suscripciones activas</p>
         </div>
 
-        <!-- Métricas Rápidas -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            <div class="modern-card p-6 flex flex-col justify-center relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-2 h-full bg-slate-400"></div>
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Clientes Registrados</span>
-                <span class="text-3xl font-black text-slate-800">{{ clientes.count }}</span>
-            </div>
-            <div class="modern-card p-6 flex flex-col justify-center relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-2 h-full bg-emerald-400"></div>
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Servicios Activos</span>
-                <span class="text-3xl font-black text-emerald-600">{{ contrataciones.count }}</span>
-            </div>
-            <div class="modern-card p-6 flex flex-col justify-center relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-2 h-full bg-cyan-400"></div>
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Membresías</span>
-                <span class="text-3xl font-black text-cyan-600">{{ membresias.count }}</span>
-            </div>
-            <div class="modern-card p-6 flex flex-col justify-center relative overflow-hidden">
-                <div class="absolute right-0 top-0 w-2 h-full bg-blue-500"></div>
-                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Tickets Totales</span>
-                <span class="text-3xl font-black text-blue-600">{{ tickets.count }}</span>
-            </div>
+        <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Clientes Registrados</span>
+            <p class="text-3xl font-black mt-3 text-slate-900 dark:text-white">{{ kpis.total_clientes|default:0 }}</p>
+            <p class="text-xs text-emerald-500 mt-1">{{ kpis.contrataciones_activas|default:0 }} con plan activo</p>
         </div>
 
-        <!-- Sección 1: Directorio de Clientes -->
-        <div class="modern-card overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex items-center gap-2 bg-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                <h2 class="text-lg font-bold text-slate-800">Directorio General de Clientes</h2>
+        <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Cobros Pendientes</span>
+            <p class="text-3xl font-black mt-3 text-amber-500">${{ kpis.monto_pendiente|default:"0"|floatformat:0 }}</p>
+            <p class="text-xs text-slate-400 mt-1">{{ kpis.facturas_pendientes_count|default:0 }} facturas sin abonar</p>
+        </div>
+
+        <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Tickets Abiertos</span>
+            <p class="text-3xl font-black mt-3 text-indigo-500">{{ tickets_abiertos_count|default:0 }}</p>
+            <p class="text-xs text-slate-400 mt-1">Consultas pendientes</p>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Ingresos Facturados vs Cobrados</h3>
+            <div class="h-72">
+                <canvas id="chartIngresosStaff"></canvas>
             </div>
-            
+        </div>
+        <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-sm">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4">Suscripciones por Plan</h3>
+            <div class="h-64 flex items-center justify-center">
+                <canvas id="chartPlanesStaff"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECCIÓN 2: CLIENTES Y SUSCRIPCIONES -->
+<div id="sec-clientes" class="portal-section hidden space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Directorio de Clientes y Estado de Cuenta</h2>
+            <p class="text-xs text-slate-400">Buscá por nombre, CUIT o empresa</p>
+        </div>
+        <input type="text" id="buscadorClientes" onkeyup="filtrarTabla('buscadorClientes', 'tablaClientes')" placeholder="Buscar cliente o CUIT..." class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2 text-sm">
+    </div>
+
+    <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table id="tablaClientes" class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/50 dark:bg-slate-900/40">
+                        <th class="py-3.5 px-4">Cliente / Empresa</th>
+                        <th class="py-3.5 px-4">CUIT & Condición</th>
+                        <th class="py-3.5 px-4">Contacto</th>
+                        <th class="py-3.5 px-4">Planes</th>
+                        <th class="py-3.5 px-4 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                    {% for cli in clientes %}
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                            <td class="py-4 px-4">
+                                <p class="font-bold text-slate-900 dark:text-white">{{ cli.nombre }}</p>
+                                <p class="text-xs text-slate-400">{{ cli.empresa|default:"Particular" }}</p>
+                            </td>
+                            <td class="py-4 px-4">
+                                <p class="font-mono text-xs font-bold">{{ cli.cuit_cuil|default:"-" }}</p>
+                                <p class="text-xs text-slate-400">{{ cli.get_condicion_fiscal_display }}</p>
+                            </td>
+                            <td class="py-4 px-4 text-xs text-slate-500">
+                                <span class="block">{{ cli.email }}</span>
+                                <span class="block">{{ cli.telefono|default:"" }}</span>
+                            </td>
+                            <td class="py-4 px-4">
+                                {% for con in cli.contrataciones.all %}
+                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold mr-1 mb-1
+                                        {% if con.estado == 'activo' %}bg-emerald-500/10 text-emerald-500{% else %}bg-amber-500/10 text-amber-500{% endif %}">
+                                        {{ con.plan.nombre }} ({{ con.estado }})
+                                    </span>
+                                {% empty %}
+                                    <span class="text-xs text-slate-400">Sin planes</span>
+                                {% endfor %}
+                            </td>
+                            <td class="py-4 px-4 text-right">
+                                <a href="{% url 'detalle_cliente' cli.id %}" class="px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-500 hover:bg-indigo-600 hover:text-white text-xs font-bold transition-colors">
+                                    Gestionar →
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- SECCIÓN 3: FACTURACIÓN Y COBROS A CLIENTES -->
+<div id="sec-facturacion" class="portal-section hidden space-y-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Formulario Factura -->
+        <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-fit">
+            <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1">Cargar Nueva Factura a Cliente</h3>
+            <p class="text-xs text-slate-400 mb-4">El cliente la verá al instante en su portal.</p>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-3.5 text-sm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="crear_factura">
+                
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Cliente</label>
+                    <select name="cliente_id" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2">
+                        {% for cli in clientes %}
+                            <option value="{{ cli.id }}">{{ cli.nombre }} ({{ cli.cuit_cuil|default:cli.user.username }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Tipo</label>
+                        <select name="tipo_comprobante" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2">
+                            <option value="C">Fact. C</option>
+                            <option value="A">Fact. A</option>
+                            <option value="B">Fact. B</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1">N° Comprobante</label>
+                        <input type="text" name="numero_comprobante" placeholder="00001-00000123" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Período</label>
+                        <input type="text" name="periodo_facturado" placeholder="Octubre 2026" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Monto ($)</label>
+                        <input type="number" step="0.01" name="monto" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Vencimiento</label>
+                        <input type="date" name="fecha_vencimiento" required class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Estado</label>
+                        <select name="estado" class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="pagado">Pagado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1">Adjuntar PDF de Factura</label>
+                    <input type="file" name="archivo_pdf" accept=".pdf" class="w-full text-xs text-slate-400">
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-500/20">
+                    Guardar y Publicar Factura
+                </button>
+            </form>
+        </div>
+
+        <!-- Tabla de Facturas -->
+        <div class="lg:col-span-2 bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">Registro de Facturas y Pagos</h3>
+            </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-700" id="clientesTable">
-                    <thead class="bg-slate-50/80 text-[11px] uppercase text-slate-500 font-semibold tracking-wider border-b border-slate-100">
-                        <tr>
-                            <th class="p-4 w-1/5">Usuario</th>
-                            <th class="p-4 w-1/4">Empresa</th>
-                            <th class="p-4 w-1/4">Sistemas Asignados</th>
-                            <th class="p-4 w-1/5">Contacto</th>
-                            <th class="p-4 text-center">Acciones</th>
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase text-slate-400 bg-slate-50/50 dark:bg-slate-900/40">
+                            <th class="py-3 px-4">Factura</th>
+                            <th class="py-3 px-4">Cliente</th>
+                            <th class="py-3 px-4">Monto</th>
+                            <th class="py-3 px-4">Estado</th>
+                            <th class="py-3 px-4 text-right">Acción</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        {% for cli in clientes %}
-                            <tr class="hover:bg-slate-50/50 transition-colors cliente-row">
-                                <td class="p-4 font-bold text-slate-900 username-cell">{{ cli.user.username }}</td>
-                                <td class="p-4 text-slate-600 empresa-cell">{{ cli.empresa|default:"No especificada" }}</td>
-                                
-                                <td class="p-4">
-                                    <div class="flex flex-col gap-1.5 items-start">
-                                        {% for c in cli.contrataciones.all %}
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border 
-                                                    {% if c.estado == 'activo' %}bg-emerald-50 text-emerald-600 border-emerald-100
-                                                    {% elif c.estado == 'suspendido' %}bg-amber-50 text-amber-600 border-amber-100
-                                                    {% else %}bg-slate-50 text-slate-500 border-slate-200{% endif %}"
-                                                    title="{{ c.plan.nombre }} - {{ c.get_estado_display }}">
-                                                    {{ c.plan.servicio.prefijo|default:c.plan.servicio.nombre }}
-                                                </span>
-                                            </div>
-                                        {% empty %}
-                                            <span class="text-[11px] text-slate-400 italic">Ninguno</span>
-                                        {% endfor %}
-                                    </div>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                        {% for fac in todas_las_facturas %}
+                            <tr>
+                                <td class="py-3.5 px-4 font-bold">
+                                    {{ fac.tipo_comprobante }} {{ fac.numero_comprobante }}
+                                    <span class="block text-xs font-normal text-slate-400">{{ fac.periodo_facturado }}</span>
                                 </td>
-                                
-                                <td class="p-4 text-xs">
-                                    <span class="block text-blue-600 font-medium mb-0.5">{{ cli.user.email }}</span>
-                                    <span class="text-slate-400 font-mono">{{ cli.telefono|default:"Sin Tel." }}</span>
+                                <td class="py-3.5 px-4">{{ fac.cliente.nombre }}</td>
+                                <td class="py-3.5 px-4 font-bold">${{ fac.monto|floatformat:0 }}</td>
+                                <td class="py-3.5 px-4">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase
+                                        {% if fac.estado == 'pagado' %}bg-emerald-500/10 text-emerald-500{% else %}bg-amber-500/10 text-amber-500{% endif %}">
+                                        {{ fac.estado }}
+                                    </span>
                                 </td>
-                                
-                                <td class="p-4 text-center">
-                                    <a href="{% url 'detalle_cliente' cli.id %}" class="inline-flex items-center gap-1 bg-white hover:bg-blue-50 text-blue-600 border border-slate-200 hover:border-blue-200 text-xs px-3.5 py-1.5 rounded-lg transition-all font-semibold shadow-sm whitespace-nowrap">
-                                        Legajo <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                                    </a>
+                                <td class="py-3.5 px-4 text-right">
+                                    {% if fac.estado != 'pagado' %}
+                                        <form method="post" class="inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="marcar_pagada">
+                                            <input type="hidden" name="factura_id" value="{{ fac.id }}">
+                                            <button type="submit" class="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white text-xs font-bold">
+                                                ✓ Marcar Pagada
+                                            </button>
+                                        </form>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% empty %}
-                            <tr><td colspan="5" class="p-8 text-center text-slate-400 italic">No hay clientes registrados en el sistema.</td></tr>
+                            <tr><td colspan="5" class="py-8 text-center text-slate-400">Sin facturas cargadas.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Sección 2: Control Rápido de Membresías -->
-        <div class="modern-card p-6">
-            <h2 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H4a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                Control de Membresías y Pagos Recientes
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {% for m in membresias %}
-                    <div class="bg-white border border-slate-200 p-4.5 rounded-xl flex flex-col justify-between gap-4 hover:shadow-md transition-shadow">
-                        <div>
-                            <div class="flex justify-between items-start mb-2">
-                                <h4 class="font-bold text-slate-800 text-sm leading-tight">{{ m.nombre_plan }}</h4>
-                                <span class="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded">{{ m.cliente.user.username }}</span>
-                            </div>
-                            <div class="flex items-center gap-2 text-xs text-slate-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                Vence: <span class="font-mono font-medium text-slate-700">{{ m.fecha_vencimiento|date:"d/m/Y" }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="flex justify-between items-center pt-3 border-t border-slate-100">
-                            <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full 
-                                {% if m.pagado %}bg-emerald-50 text-emerald-600 border border-emerald-100
-                                {% else %}bg-amber-50 text-amber-600 border border-amber-100{% endif %}">
-                                {% if m.pagado %}Al Día{% else %}Pendiente{% endif %}
-                            </span>
-                            <a href="{% url 'alternar_pago_membresia' m.id %}" class="text-[11px] font-bold uppercase tracking-wider bg-white border border-slate-200 hover:bg-slate-50 hover:text-blue-600 text-slate-600 px-3 py-1.5 rounded-lg transition-all shadow-sm">
-                                Cambiar 🔄
-                            </a>
-                        </div>
-                    </div>
-                {% empty %}
-                    <p class="text-slate-400 text-sm italic col-span-full text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">No hay membresías registradas.</p>
-                {% endfor %}
-            </div>
+    </div>
+</div>
+
+<!-- SECCIÓN 4: SOPORTE CLIENTES -->
+<div id="sec-soporte" class="portal-section hidden space-y-6">
+    <div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Tickets de Soporte al Cliente</h2>
+        <p class="text-xs text-slate-400 mt-1">Consultas y problemas reportados por los clientes activos</p>
+    </div>
+
+    <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase text-slate-400 bg-slate-50/50 dark:bg-slate-900/40">
+                        <th class="py-3 px-4">ID / Asunto</th>
+                        <th class="py-3 px-4">Cliente</th>
+                        <th class="py-3 px-4">Prioridad</th>
+                        <th class="py-3 px-4">Estado</th>
+                        <th class="py-3 px-4 text-right">Actualizar Estado</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                    {% for t in tickets_soporte %}
+                        <tr>
+                            <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                                #{{ t.id }} - {{ t.asunto }}
+                                <span class="block text-xs font-normal text-slate-400">{{ t.descripcion|truncatechars:60 }}</span>
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">{{ t.cliente.nombre }}</td>
+                            <td class="py-3.5 px-4">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
+                                    {% if t.prioridad == 'urgente' %}bg-red-500/10 text-red-500
+                                    {% elif t.prioridad == 'alta' %}bg-amber-500/10 text-amber-500
+                                    {% else %}bg-blue-500/10 text-blue-500{% endif %}">
+                                    {{ t.prioridad }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase bg-indigo-500/10 text-indigo-500">
+                                    {{ t.estado }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-right">
+                                <form method="post" action="{% url 'actualizar_estado_ticket' %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="ticket_id" value="{{ t.id }}">
+                                    <select name="estado" onchange="this.form.submit()" class="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs px-2 py-1">
+                                        <option value="abierto" {% if t.estado == 'abierto' %}selected{% endif %}>Abierto</option>
+                                        <option value="en_proceso" {% if t.estado == 'en_proceso' %}selected{% endif %}>En Proceso</option>
+                                        <option value="resuelto" {% if t.estado == 'resuelto' %}selected{% endif %}>Resuelto</option>
+                                        <option value="cerrado" {% if t.estado == 'cerrado' %}selected{% endif %}>Cerrado</option>
+                                    </select>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="py-10 text-center text-slate-400">No hay tickets de soporte activos.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    </div>
+</div>
 
-        <!-- Sección 3: Tablero Kanban de Tickets de Soporte -->
-        <div class="modern-card p-6 bg-slate-50/50">
-            <h2 class="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012-2m-6 9l2 2 4-4"/></svg>
-                Tablero de Control de Soporte (Kanban)
-            </h2>
+<!-- SECCIÓN 5: TAREAS PENDIENTES (DESARROLLO / ASIGNADAS) -->
+<div id="sec-tareas" class="portal-section hidden space-y-6">
+    <div>
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Tareas Pendientes y Desarrollos Internos</h2>
+        <p class="text-xs text-slate-400 mt-1">Tareas asignadas por la administración o aprovisionamientos pendientes</p>
+    </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
-                
-                <!-- Columna Abierto -->
-                <div class="kanban-col p-4 rounded-xl flex flex-col gap-3 shadow-sm">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
-                        <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Abiertos ({{ tickets_abiertos.count }})
-                        </span>
-                    </div>
-                    <div class="flex flex-col gap-3 min-h-[100px]">
-                        {% for t in tickets_abiertos %}
-                            {% include "dashboard/partials/ticket_card.html" %}
-                        {% empty %}
-                            <p class="text-[11px] text-slate-400 italic text-center mt-4">Sin tickets en esta cola</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Columna En Proceso -->
-                <div class="kanban-col p-4 rounded-xl flex flex-col gap-3 shadow-sm">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
-                        <span class="text-[11px] font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-blue-500"></span> En Proceso ({{ tickets_proceso.count }})
-                        </span>
-                    </div>
-                    <div class="flex flex-col gap-3 min-h-[100px]">
-                        {% for t in tickets_proceso %}
-                            {% include "dashboard/partials/ticket_card.html" %}
-                        {% empty %}
-                            <p class="text-[11px] text-slate-400 italic text-center mt-4">Sin tickets en esta cola</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Columna Resueltos -->
-                <div class="kanban-col p-4 rounded-xl flex flex-col gap-3 shadow-sm">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
-                        <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Resueltos ({{ tickets_resueltos.count }})
-                        </span>
-                    </div>
-                    <div class="flex flex-col gap-3 min-h-[100px]">
-                        {% for t in tickets_resueltos %}
-                            {% include "dashboard/partials/ticket_card.html" %}
-                        {% empty %}
-                            <p class="text-[11px] text-slate-400 italic text-center mt-4">Sin tickets en esta cola</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Columna Cerrados -->
-                <div class="kanban-col p-4 rounded-xl flex flex-col gap-3 shadow-sm opacity-80">
-                    <div class="flex justify-between items-center pb-2 border-b border-slate-200">
-                        <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-slate-400"></span> Cerrados ({{ tickets_cerrados.count }})
-                        </span>
-                    </div>
-                    <div class="flex flex-col gap-3 min-h-[100px]">
-                        {% for t in tickets_cerrados %}
-                            {% include "dashboard/partials/ticket_card.html" %}
-                        {% empty %}
-                            <p class="text-[11px] text-slate-400 italic text-center mt-4">Sin tickets en esta cola</p>
-                        {% endfor %}
-                    </div>
-                </div>
-
-            </div>
+    <div class="bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase text-slate-400 bg-slate-50/50 dark:bg-slate-900/40">
+                        <th class="py-3 px-4">Tarea / Asunto</th>
+                        <th class="py-3 px-4">Asignado a / Cliente</th>
+                        <th class="py-3 px-4">Prioridad</th>
+                        <th class="py-3 px-4">Estado</th>
+                        <th class="py-3 px-4 text-right">Actualizar Estado</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+                    {% for tarea in tareas_pendientes %}
+                        <tr>
+                            <td class="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                                #{{ tarea.id }} - {{ tarea.asunto }}
+                                <span class="block text-xs font-normal text-slate-400">{{ tarea.descripcion|truncatechars:60 }}</span>
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-600 dark:text-slate-300">{{ tarea.cliente.nombre|default:"Sistema / Interno" }}</td>
+                            <td class="py-3.5 px-4">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-purple-500/10 text-purple-500">
+                                    {{ tarea.prioridad }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase bg-amber-500/10 text-amber-500">
+                                    {{ tarea.estado }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-right">
+                                <form method="post" action="{% url 'actualizar_estado_ticket' %}" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="ticket_id" value="{{ tarea.id }}">
+                                    <select name="estado" onchange="this.form.submit()" class="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs px-2 py-1">
+                                        <option value="abierto" {% if tarea.estado == 'abierto' %}selected{% endif %}>Pendiente</option>
+                                        <option value="en_proceso" {% if tarea.estado == 'en_proceso' %}selected{% endif %}>En Desarrollo</option>
+                                        <option value="resuelto" {% if tarea.estado == 'resuelto' %}selected{% endif %}>Completado</option>
+                                    </select>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="5" class="py-10 text-center text-slate-400">No hay tareas pendientes asignadas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    </div>
+</div>
 
-    </main>
+{% endblock %}
 
-    <!-- Script de Búsqueda Instantánea -->
-    <script>
-        function filtrarClientes() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
-            const filas = document.getElementsByClassName('cliente-row');
+{% block extra_js %}
+<script>
+    function filtrarTabla(idInput, idTabla) {
+        const filtro = document.getElementById(idInput).value.toLowerCase();
+        const filas = document.querySelectorAll(`#${idTabla} tbody tr`);
+        filas.forEach(fila => {
+            fila.style.display = fila.innerText.toLowerCase().includes(filtro) ? '' : 'none';
+        });
+    }
 
-            for (let i = 0; i < filas.length; i++) {
-                const username = filas[i].getElementsByClassName('username-cell')[0].textContent.toLowerCase();
-                const empresa = filas[i].getElementsByClassName('empresa-cell')[0].textContent.toLowerCase();
+    new Chart(document.getElementById('chartIngresosStaff'), {
+        type: 'line',
+        data: {
+            labels: ['May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct'],
+            datasets: [{
+                label: 'Facturado ($)',
+                data: {{ chart_ingresos|default:"[120000, 190000, 240000, 310000, 380000, 450000]"|safe }},
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
 
-                if (username.includes(input) || empresa.includes(input)) {
-                    filas[i].style.display = "";
-                } else {
-                    filas[i].style.display = "none";
-                }
-            }
-        }
-    </script>
-
-    <footer class="text-center py-6 text-slate-400 text-xs border-t border-slate-200 mt-auto bg-white">
-        © 2026 CoreX IT Solutions - Panel Interno de Empleados
-    </footer>
-</body>
-</html>
+    new Chart(document.getElementById('chartPlanesStaff'), {
+        type: 'doughnut',
+        data: {
+            labels: {{ chart_planes_labels|default:"['Starter', 'Pyme', 'Empresa']"|safe }},
+            datasets: [{
+                data: {{ chart_planes_data|default:"[12, 8, 4]"|safe }},
+                backgroundColor: ['#6366f1', '#10b981', '#f59e0b'],
+                borderWidth: 0
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+</script>
+{% endblock %}

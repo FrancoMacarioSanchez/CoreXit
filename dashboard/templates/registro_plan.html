@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreX | Completar Registro</title>
+    <title>CoreX | Completar Suscripción</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -38,7 +38,7 @@
                     <span class="text-xs text-indigo-400 font-bold tracking-widest uppercase">{{ plan.servicio.nombre }}</span>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-2">{{ plan.nombre }}</h3>
-                <p class="text-sm text-slate-400 mb-6">{{ plan.descripcion }}</p>
+                <p class="text-sm text-slate-400 mb-6 whitespace-pre-line leading-relaxed">{{ plan.descripcion }}</p>
 
                 <div class="border-t border-slate-700/50 pt-6">
                     <p class="text-xs text-slate-400 mb-1 uppercase tracking-wider">Total a pagar ({{ frecuencia }})</p>
@@ -53,23 +53,42 @@
             </div>
         </div>
 
-        <!-- COLUMNA DERECHA: Formulario de Registro -->
+        <!-- COLUMNA DERECHA: Formulario de Registro / Login -->
         <div class="md:w-2/3 p-8">
-            <div class="mb-6">
-                <h1 class="text-xl font-bold text-white">Crear cuenta de cliente</h1>
-                <p class="text-slate-400 text-xs mt-1">Ingresá tus datos fiscales para la facturación</p>
+            
+            <!-- Selector de Modo (Tabs) -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900/90 rounded-xl border border-slate-800 mb-6">
+                <button type="button" id="tab-registro" onclick="cambiarModo('registro')" class="py-2.5 text-xs font-bold rounded-lg bg-indigo-600 text-white transition-all shadow">
+                    Soy nuevo cliente
+                </button>
+                <button type="button" id="tab-login" onclick="cambiarModo('login')" class="py-2.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all">
+                    Ya tengo cuenta
+                </button>
             </div>
 
-            {% if form.errors %}
+            <div class="mb-6">
+                <h1 id="form-titulo" class="text-xl font-bold text-white">Crear cuenta de cliente</h1>
+                <p id="form-subtitulo" class="text-slate-400 text-xs mt-1">Ingresá tus datos fiscales para la facturación</p>
+            </div>
+
+            <!-- Mensajes de Error Generales o de Formulario -->
+            {% if form.errors or error_login %}
                 <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl mb-6 text-sm">
-                    Por favor, verificá los errores en el formulario. Asegurate de que el usuario no exista.
+                    {% if error_login %}
+                        {{ error_login }}
+                    {% else %}
+                        Por favor, verificá los errores en el formulario. Asegurate de que el usuario no exista.
+                    {% endif %}
                 </div>
             {% endif %}
 
             <form method="post" class="flex flex-col gap-4">
                 {% csrf_token %}
                 
-                <!-- Datos de Acceso -->
+                <!-- Input oculto para indicar a Django si es 'registro' o 'login' -->
+                <input type="hidden" name="tipo_accion" id="tipo_accion" value="{{ request.POST.tipo_accion|default:'registro' }}">
+                
+                <!-- Datos de Acceso (Comunes para ambos modos) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-mono text-indigo-400 mb-1">USUARIO</label>
@@ -83,61 +102,64 @@
                     </div>
                 </div>
 
-                <hr class="border-slate-700/50 my-2">
+                <!-- SECCIÓN EXCLUSIVA PARA NUEVOS CLIENTES -->
+                <div id="campos-registro" class="flex flex-col gap-4">
+                    <hr class="border-slate-700/50 my-2">
 
-                <!-- Datos Personales y Contacto -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-mono text-indigo-400 mb-1">NOMBRE COMPLETO</label>
-                        <input type="text" name="nombre" required value="{{ form.nombre.value|default:'' }}" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
-                        {{ form.nombre.errors }}
+                    <!-- Datos Personales y Contacto -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-mono text-indigo-400 mb-1">NOMBRE COMPLETO</label>
+                            <input type="text" name="nombre" required value="{{ form.nombre.value|default:'' }}" class="campo-req-registro w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
+                            {{ form.nombre.errors }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-indigo-400 mb-1">EMAIL DE CONTACTO</label>
+                            <input type="email" name="email" required value="{{ form.email.value|default:'' }}" class="campo-req-registro w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
+                            {{ form.email.errors }}
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-mono text-indigo-400 mb-1">EMAIL DE CONTACTO</label>
-                        <input type="email" name="email" required value="{{ form.email.value|default:'' }}" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
-                        {{ form.email.errors }}
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-mono text-indigo-400 mb-1">EMPRESA / RAZÓN SOCIAL</label>
-                        <input type="text" name="empresa" value="{{ form.empresa.value|default:'' }}" placeholder="Opcional" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-mono text-indigo-400 mb-1">EMPRESA / RAZÓN SOCIAL</label>
+                            <input type="text" name="empresa" value="{{ form.empresa.value|default:'' }}" placeholder="Opcional" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-indigo-400 mb-1">TELÉFONO</label>
+                            <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" placeholder="Opcional" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-mono text-indigo-400 mb-1">TELÉFONO</label>
-                        <input type="text" name="telefono" value="{{ form.telefono.value|default:'' }}" placeholder="Opcional" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
-                    </div>
-                </div>
 
-                <!-- Datos Fiscales -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-mono text-indigo-400 mb-1">CUIT / CUIL</label>
-                        <input type="text" name="cuit_cuil" required value="{{ form.cuit_cuil.value|default:'' }}" placeholder="Ej: 20-12345678-9" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
-                        {{ form.cuit_cuil.errors }}
+                    <!-- Datos Fiscales -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-mono text-indigo-400 mb-1">CUIT / CUIL</label>
+                            <input type="text" name="cuit_cuil" required value="{{ form.cuit_cuil.value|default:'' }}" placeholder="Ej: 20-12345678-9" class="campo-req-registro w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm">
+                            {{ form.cuit_cuil.errors }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-indigo-400 mb-1">CONDICIÓN FISCAL</label>
+                            <select name="condicion_fiscal" required class="campo-req-registro w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm appearance-none">
+                                <option value="consumidor_final" {% if form.condicion_fiscal.value == 'consumidor_final' %}selected{% endif %}>Consumidor Final</option>
+                                <option value="monotributo" {% if form.condicion_fiscal.value == 'monotributo' %}selected{% endif %}>Monotributo</option>
+                                <option value="responsable_inscripto" {% if form.condicion_fiscal.value == 'responsable_inscripto' %}selected{% endif %}>Responsable Inscripto</option>
+                                <option value="exento" {% if form.condicion_fiscal.value == 'exento' %}selected{% endif %}>Sujeto Exento</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-mono text-indigo-400 mb-1">CONDICIÓN FISCAL</label>
-                        <select name="condicion_fiscal" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm appearance-none">
-                            <option value="consumidor_final" {% if form.condicion_fiscal.value == 'consumidor_final' %}selected{% endif %}>Consumidor Final</option>
-                            <option value="monotributo" {% if form.condicion_fiscal.value == 'monotributo' %}selected{% endif %}>Monotributo</option>
-                            <option value="responsable_inscripto" {% if form.condicion_fiscal.value == 'responsable_inscripto' %}selected{% endif %}>Responsable Inscripto</option>
-                            <option value="exento" {% if form.condicion_fiscal.value == 'exento' %}selected{% endif %}>Sujeto Exento</option>
-                        </select>
-                    </div>
-                </div>
 
-                <div>
-                    <label class="block text-xs font-mono text-indigo-400 mb-1">DOMICILIO FISCAL</label>
-                    <textarea name="domicilio_fiscal" rows="2" placeholder="Calle, Número, Localidad, Provincia, CP" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm resize-none">{{ form.domicilio_fiscal.value|default:'' }}</textarea>
+                    <div>
+                        <label class="block text-xs font-mono text-indigo-400 mb-1">DOMICILIO FISCAL</label>
+                        <textarea name="domicilio_fiscal" rows="2" placeholder="Calle, Número, Localidad, Provincia, CP" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500 text-sm resize-none">{{ form.domicilio_fiscal.value|default:'' }}</textarea>
+                    </div>
                 </div>
 
                 <!-- Términos y Condiciones -->
                 <div class="flex items-start gap-3 mt-2 bg-slate-900/40 p-3 rounded-xl border border-slate-800">
                     <input type="checkbox" name="aceptar_terminos" id="aceptar_terminos" required class="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-900/60 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900">
                     <label for="aceptar_terminos" class="text-xs text-slate-300">
-                        He leído y acepto los <a href="#" target="_blank" class="text-indigo-400 hover:underline">Términos y Condiciones</a> y autorizo el cobro automático recurrente de mi suscripción mediante Mercado Pago.
+                        He leído y acepto los <a href="/dashboard/terminos-condiciones/" target="_blank" class="text-indigo-400 hover:underline">Términos y Condiciones</a> y autorizo el cobro automático recurrente de mi suscripción mediante Mercado Pago.
                     </label>
                 </div>
                 
@@ -147,7 +169,7 @@
                         <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
                         <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
                     </svg>
-                    Crear Cuenta y Pagar
+                    <span id="btn-submit-texto">Crear Cuenta y Pagar</span>
                 </button>
             </form>
 
@@ -156,5 +178,64 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function cambiarModo(modo) {
+            const tabRegistro = document.getElementById('tab-registro');
+            const tabLogin = document.getElementById('tab-login');
+            const camposRegistro = document.getElementById('campos-registro');
+            const inputsRequeridos = document.querySelectorAll('.campo-req-registro');
+            const tipoAccion = document.getElementById('tipo_accion');
+            const formTitulo = document.getElementById('form-titulo');
+            const formSubtitulo = document.getElementById('form-subtitulo');
+            const btnTexto = document.getElementById('btn-submit-texto');
+
+            if (modo === 'login') {
+                tipoAccion.value = 'login';
+                camposRegistro.classList.add('hidden');
+                
+                // Quitamos required y deshabilitamos los inputs ocultos para que no bloqueen el submit
+                inputsRequeridos.forEach(input => {
+                    input.removeAttribute('required');
+                    input.disabled = true;
+                });
+
+                // Estilos de las pestañas
+                tabLogin.className = "py-2.5 text-xs font-bold rounded-lg bg-indigo-600 text-white transition-all shadow";
+                tabRegistro.className = "py-2.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+
+                // Textos dinámicos
+                formTitulo.textContent = "Ingresar con tu cuenta";
+                formSubtitulo.textContent = "Usaremos los datos fiscales asociados a tu usuario actual";
+                btnTexto.textContent = "Iniciar Sesión y Pagar";
+            } else {
+                tipoAccion.value = 'registro';
+                camposRegistro.classList.remove('hidden');
+
+                // Volvemos a activar required en los campos de registro
+                inputsRequeridos.forEach(input => {
+                    input.setAttribute('required', 'required');
+                    input.disabled = false;
+                });
+
+                // Estilos de las pestañas
+                tabRegistro.className = "py-2.5 text-xs font-bold rounded-lg bg-indigo-600 text-white transition-all shadow";
+                tabLogin.className = "py-2.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition-all";
+
+                // Textos dinámicos
+                formTitulo.textContent = "Crear cuenta de cliente";
+                formSubtitulo.textContent = "Ingresá tus datos fiscales para la facturación";
+                btnTexto.textContent = "Crear Cuenta y Pagar";
+            }
+        }
+
+        // Mantener la pestaña activa si el backend devuelve un error al intentar iniciar sesión
+        document.addEventListener("DOMContentLoaded", () => {
+            const accionActual = document.getElementById('tipo_accion').value;
+            if (accionActual === 'login') {
+                cambiarModo('login');
+            }
+        });
+    </script>
 </body>
 </html>

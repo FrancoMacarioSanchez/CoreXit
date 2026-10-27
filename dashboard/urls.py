@@ -61,4 +61,7 @@ urlpatterns = [
     path('staff/clientes/', views.lista_clientes_staff_view, name='lista_clientes'),
     path('staff/clientes/<int:cliente_id>/', views.detalle_cliente_view, name='detalle_cliente'),
     path('staff/ticket/<int:ticket_id>/actualizar/', views.actualizar_estado_ticket, name='actualizar_estado_ticket'),
+    # urls.py
+    path('api/tickets/actualizar-estado/', views.actualizar_estado_ticket, name='actualizar_estado_ticket'),
+    path('terminos-condiciones/', views.terminos_condiciones_view, name='terminos_condiciones'),
 ]
