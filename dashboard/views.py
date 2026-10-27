@@ -205,10 +205,7 @@ def portal_empleado_view(request):
   tickets_soporte = Ticket.objects.filter(tipo='soporte')
   tareas_pendientes = Ticket.objects.filter(tipo='desarrollo')
 
-  mrr = sum(
-      c.plan.precio_mensual
-      for c in contrataciones.filter(estado='activo', frecuencia_pago='mensual')
-  )
+  mrr = sum(c.plan.precio_mensual for c in contrataciones if c.plan is not None)
   monto_pendiente = sum(
       f.monto for f in todas_las_facturas.filter(estado='pendiente')
   )
