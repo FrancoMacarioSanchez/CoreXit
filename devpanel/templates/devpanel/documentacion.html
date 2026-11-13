@@ -1,0 +1,60 @@
+{% extends "devpanel/base.html" %}
+{% block title %}Contrato de API | Dev Console{% endblock %}
+{% block header_title %}Contrato de API CoreX{% endblock %}
+
+{% block content %}
+<div class="card card-pad text-sm space-y-3">
+    <p>Cada SaaS (GestionAR, StockeAR, Turnos, …) implementa la <strong>API CoreX</strong> para que este Hub pueda crear tenants y leer sus estadísticas. La especificación completa está en <code class="font-mono">docs/API_SAAS.md</code>; el kit listo para pegar en un proyecto django-tenants está en <code class="font-mono">sdk/corex_agent/</code>.</p>
+    <p class="muted">Dos sentidos: el Hub <strong>consulta</strong> al SaaS (pull, con el <em>API token</em> de cada servicio) y el SaaS <strong>empuja</strong> métricas al Hub (push, con el <em>token de ingesta</em>). Podés usar uno o ambos; si llegan los dos para el mismo día, se fusionan.</p>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="card card-pad space-y-3">
+        <h3 class="card-title">Hub → SaaS <span class="text-xs muted font-normal">(lo implementa cada SaaS)</span></h3>
+        <p class="text-xs muted">Base: <code>Servicio.api_url</code> · Header <code>Authorization: Bearer &lt;api_token&gt;</code> · Timeout {{ timeout }} s</p>
+        <table class="tbl text-xs font-mono">
+            <tbody>
+                <tr><td>GET</td><td>health/</td><td class="font-sans">Estado y versión</td></tr>
+                <tr><td>GET</td><td>tenants/</td><td class="font-sans">Lista (para importar)</td></tr>
+                <tr><td>POST</td><td>tenants/</td><td class="font-sans">Crear tenant (idempotente)</td></tr>
+                <tr><td>GET</td><td>tenants/&lt;schema&gt;/</td><td class="font-sans">Detalle</td></tr>
+                <tr><td>GET</td><td>tenants/&lt;schema&gt;/metricas/?desde=&amp;hasta=</td><td class="font-sans">Serie diaria</td></tr>
+                <tr><td>POST</td><td>tenants/&lt;schema&gt;/suspender/</td><td class="font-sans">Bloquear acceso</td></tr>
+                <tr><td>POST</td><td>tenants/&lt;schema&gt;/reactivar/</td><td class="font-sans">Desbloquear</td></tr>
+                <tr><td>POST</td><td>tenants/&lt;schema&gt;/plan/</td><td class="font-sans">Nuevos límites</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="card card-pad space-y-3">
+        <h3 class="card-title">SaaS → Hub <span class="text-xs muted font-normal">(ya implementado acá)</span></h3>
+        <p class="text-xs muted">Base: <code>{{ hub_url }}/api/v1/</code> · Header <code>Authorization: Bearer &lt;ingest_token&gt;</code></p>
+        <table class="tbl text-xs font-mono">
+            <tbody>
+                <tr><td>GET</td><td>ping/</td><td class="font-sans">Probar el token</td></tr>
+                <tr><td>POST</td><td>metricas/</td><td class="font-sans">Snapshots diarios (hasta 500 por llamada)</td></tr>
+                <tr><td>POST</td><td>tenants/estado/</td><td class="font-sans">Aviso de cambio de estado</td></tr>
+            </tbody>
+        </table>
+        <pre class="rounded-xl bg-slate-900 text-slate-100 p-4 text-[11px] overflow-x-auto">curl -X POST {{ hub_url }}/api/v1/metricas/ \
+  -H "Authorization: Bearer $COREX_INGEST_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"items": [{"tenant": "gestmitienda", "fecha": "2026-11-10",
+       "metricas": {"ventas_cantidad": 37, "ventas_monto": 412500,
+                    "comprobantes_arca": 35, "usuarios": 4}}]}'</pre>
+    </div>
+</div>
+
+<div class="card card-pad text-sm space-y-2">
+    <h3 class="card-title">Tipos de métrica</h3>
+    <p><strong>contador</strong>: lo que pasó ese día (ventas, turnos, comprobantes). El consumo del mes es la suma desde el día 1 y se compara con el límite mensual del plan.</p>
+    <p><strong>nivel</strong>: el valor en ese momento (usuarios, productos, MB usados). El consumo es el último valor recibido.</p>
+    <p class="muted">Los valores deben ser numéricos; las claves que no estén definidas en el SaaS igual se guardan y se muestran en el panel dev para que las definas.</p>
+</div>
+
+<div class="card card-pad text-sm space-y-2">
+    <h3 class="card-title">Probar sin tocar los SaaS</h3>
+    <p>Hay un SaaS simulado en <code class="font-mono">sdk/mock_saas.py</code> que implementa todo el contrato con datos aleatorios:</p>
+    <pre class="rounded-xl bg-slate-900 text-slate-100 p-4 text-[11px] overflow-x-auto">python sdk/mock_saas.py --puerto 9001 --token prueba123
+# Luego, en el servicio: API URL = http://127.0.0.1:9001/corex/v1/  ·  API token = prueba123</pre>
+</div>
+{% endblock %}

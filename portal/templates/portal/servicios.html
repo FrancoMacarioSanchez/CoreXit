@@ -1,0 +1,47 @@
+{% extends "portal/base.html" %}
+{% load corex %}
+{% block title %}Mis servicios | CoreX{% endblock %}
+{% block header_title %}Mis servicios{% endblock %}
+{% block header_actions %}<a href="{% url 'portal:contratar' %}" class="btn btn-primary btn-sm">+ Contratar</a>{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% for c in contrataciones %}
+        <div class="card card-pad flex flex-col justify-between {% if c.estado == 'historico' %}opacity-60{% endif %}">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-bold uppercase tracking-widest" style="color: {{ c.servicio.color }}">{{ c.servicio.nombre }}</span>
+                    {% estado c.estado %}
+                </div>
+                <h3 class="text-2xl font-bold">{{ c.plan.nombre }}</h3>
+                <p class="text-sm muted mt-1">{{ c.precio|pesos }} / {{ c.get_frecuencia_pago_display|lower }}</p>
+                {% if c.url_acceso %}
+                    <a href="{{ c.url_acceso }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 mt-3 text-sm link font-mono">{{ c.url_acceso }} ↗</a>
+                {% endif %}
+            </div>
+            <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs muted">
+                <div>
+                    <span class="block">Inicio: <strong>{{ c.fecha_inicio|date:"d/m/Y" }}</strong></span>
+                    <span class="block">Renovación: <strong>{{ c.fecha_vencimiento|date:"d/m/Y" }}</strong></span>
+                </div>
+                <div class="flex gap-2">
+                    {% if c.estado == 'pendiente' %}
+                        <form method="post" action="{% url 'portal:cancelar_solicitud' c.id %}">{% csrf_token %}<button class="btn btn-ghost btn-sm">Cancelar</button></form>
+                        <a href="{% url 'portal:checkout' c.id %}" class="btn btn-mp btn-sm">Pagar</a>
+                    {% elif c.estado == 'suspendido' and c.link_pago %}
+                        <a href="{% url 'portal:checkout' c.id %}" class="btn btn-mp btn-sm">Regularizar</a>
+                    {% endif %}
+                    {% if c.estado != 'pendiente' %}
+                        <a href="{% url 'portal:servicio' c.id %}" class="btn btn-primary btn-sm">Consumo y estadísticas →</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="card card-pad md:col-span-2 text-center">
+            <p class="muted text-sm">No tenés servicios contratados.</p>
+            <a href="{% url 'portal:contratar' %}" class="btn btn-primary mt-4">Ver planes</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

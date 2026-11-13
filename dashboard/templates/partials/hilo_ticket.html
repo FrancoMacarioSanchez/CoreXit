@@ -1,0 +1,26 @@
+{# Conversación de un ticket. Espera: ticket, mensajes, mostrar_internos #}
+<div class="space-y-4">
+    <div class="flex gap-3">
+        <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-xs font-bold shrink-0">{{ ticket.cliente.iniciales|default:"CX" }}</div>
+        <div class="flex-1 rounded-2xl rounded-tl-sm bg-slate-100 dark:bg-slate-800/60 p-4">
+            <p class="text-xs text-slate-400 mb-1">{{ ticket.cliente.nombre_visible|default:"CoreX" }} · {{ ticket.created_at|date:"d/m/Y H:i" }}</p>
+            <p class="text-sm whitespace-pre-line">{{ ticket.descripcion }}</p>
+        </div>
+    </div>
+    {% for m in mensajes %}
+        {% if not m.interno or mostrar_internos %}
+            {% with es_corex=m.autor.is_staff %}
+            <div class="flex gap-3 {% if es_corex %}flex-row-reverse{% endif %}">
+                <div class="w-8 h-8 rounded-full {% if es_corex %}bg-indigo-600 text-white{% else %}bg-slate-200 dark:bg-slate-800{% endif %} flex items-center justify-center text-xs font-bold shrink-0 uppercase">{% if es_corex %}CX{% else %}{{ m.autor.username|slice:":2" }}{% endif %}</div>
+                <div class="flex-1 max-w-[85%] rounded-2xl p-4 {% if m.interno %}bg-amber-500/10 border border-amber-500/30{% elif es_corex %}rounded-tr-sm bg-indigo-500/10{% else %}rounded-tl-sm bg-slate-100 dark:bg-slate-800/60{% endif %}">
+                    <p class="text-xs text-slate-400 mb-1">
+                        {% firstof m.autor.get_full_name m.autor.username "Usuario" as quien %}{% if es_corex %}{{ quien }} (CoreX){% else %}{{ quien }}{% endif %}
+                        · {{ m.created_at|date:"d/m/Y H:i" }}{% if m.interno %} · <strong class="text-amber-500">Nota interna</strong>{% endif %}
+                    </p>
+                    <p class="text-sm whitespace-pre-line">{{ m.mensaje }}</p>
+                </div>
+            </div>
+            {% endwith %}
+        {% endif %}
+    {% endfor %}
+</div>

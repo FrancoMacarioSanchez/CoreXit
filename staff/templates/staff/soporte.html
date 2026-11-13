@@ -1,0 +1,32 @@
+{% extends "staff/base.html" %}
+{% load corex %}
+{% block title %}Soporte | CoreX Staff{% endblock %}
+{% block header_title %}Soporte a clientes{% endblock %}
+
+{% block content %}
+<div class="flex flex-wrap gap-2 text-xs font-semibold">
+    <a href="?estado=activos" class="px-3 py-1.5 rounded-lg {% if estado == 'activos' %}bg-indigo-600 text-white{% else %}btn-ghost{% endif %}">Sin resolver</a>
+    {% for v, l in estados %}<a href="?estado={{ v }}" class="px-3 py-1.5 rounded-lg {% if estado == v %}bg-indigo-600 text-white{% else %}btn-ghost{% endif %}">{{ l }}</a>{% endfor %}
+    <a href="?estado=todos" class="px-3 py-1.5 rounded-lg {% if estado == 'todos' %}bg-indigo-600 text-white{% else %}btn-ghost{% endif %}">Todos</a>
+    <a href="?estado={{ estado }}&mios=1" class="px-3 py-1.5 rounded-lg {% if request.GET.mios %}bg-indigo-600 text-white{% else %}btn-ghost{% endif %}">Asignados a mí</a>
+</div>
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="tbl">
+            <thead><tr><th>Ticket</th><th>Cliente / Servicio</th><th>Prioridad</th><th>Estado</th><th>Asignado</th><th>Actividad</th></tr></thead>
+            <tbody>
+                {% for t in tickets %}
+                    <tr class="cursor-pointer" onclick="location.href='{% url 'staff:ticket' t.id %}'">
+                        <td><a href="{% url 'staff:ticket' t.id %}" class="font-semibold">#{{ t.id }} · {{ t.asunto }}</a><span class="block text-xs muted">{{ t.descripcion|truncatechars:70 }}</span></td>
+                        <td>{% if t.cliente %}<span class="font-medium">{{ t.cliente.nombre_visible }}</span>{% endif %}<span class="block text-xs muted">{{ t.contratacion.servicio|default:"General" }}</span></td>
+                        <td>{% estado t.prioridad %}</td>
+                        <td>{% estado t.estado %}</td>
+                        <td class="text-xs">{% if t.asignado_a %}{% firstof t.asignado_a.get_full_name t.asignado_a.username %}{% else %}—{% endif %}</td>
+                        <td class="text-xs muted">{{ t.n_mensajes }} msj · {{ t.updated_at|default:t.created_at|timesince }}</td>
+                    </tr>
+                {% empty %}<tr><td colspan="6" class="text-center muted py-10">No hay tickets con ese filtro.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

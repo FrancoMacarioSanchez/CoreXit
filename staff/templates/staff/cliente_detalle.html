@@ -1,0 +1,127 @@
+{% extends "staff/base.html" %}
+{% load corex %}
+{% block title %}{{ cliente.nombre_visible }} | CoreX Staff{% endblock %}
+{% block breadcrumb %}<a href="{% url 'staff:clientes' %}" class="text-[11px] text-slate-400 hover:text-indigo-500">← Clientes</a>{% endblock %}
+{% block header_title %}{{ cliente.nombre_visible }}{% endblock %}
+{% block header_actions %}
+    <a href="{% url 'staff:facturacion' %}?cliente={{ cliente.id }}#nueva" class="btn btn-ghost btn-sm hidden sm:inline-flex">+ Factura</a>
+    {% if user.is_superuser %}<a href="{% url 'admin:dashboard_clienteprofile_change' cliente.id %}" target="_blank" class="btn btn-ghost btn-sm hidden sm:inline-flex">Admin ↗</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+    {% with v=mrr_cliente|pesos %}{% include "partials/kpi.html" with titulo="Aporte al MRR" valor=v color="!text-emerald-500" %}{% endwith %}
+    {% with v=cobranza.cobrado_total|pesos %}{% include "partials/kpi.html" with titulo="Cobrado histórico" valor=v %}{% endwith %}
+    {% with v=cobranza.pendiente_monto|pesos p=cobranza.pendiente_count|stringformat:"s"|add:" facturas" %}{% include "partials/kpi.html" with titulo="Pendiente" valor=v pie=p color="!text-amber-500" %}{% endwith %}
+    {% with v=cobranza.vencido_monto|pesos %}{% if cobranza.vencido_count %}{% include "partials/kpi.html" with titulo="En mora" valor=v color="!text-red-500" pie="Tiene facturas vencidas" %}{% else %}{% include "partials/kpi.html" with titulo="En mora" valor=v pie="Al día" %}{% endif %}{% endwith %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="lg:col-span-4 space-y-6">
+        <div class="card card-pad">
+            <div class="flex items-center gap-4 mb-5">
+                <div class="w-14 h-14 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-xl font-bold">{{ cliente.iniciales }}</div>
+                <div><h2 class="text-lg font-bold">{{ cliente.nombre_visible }}</h2><p class="text-sm muted">@{{ cliente.user.username }} · desde {{ cliente.user.date_joined|date:"M Y" }}</p></div>
+            </div>
+            <dl class="space-y-3 text-sm">
+                <div><dt class="label">Titular</dt><dd>{{ cliente.nombre }}</dd></div>
+                <div><dt class="label">Email</dt><dd>{% firstof cliente.email cliente.user.email as mail %}<a href="mailto:{{ mail }}" class="link">{{ mail }}</a></dd></div>
+                <div><dt class="label">Teléfono</dt><dd>{{ cliente.telefono|default:"—" }}</dd></div>
+                <div><dt class="label">CUIT · Condición</dt><dd><span class="font-mono">{{ cliente.cuit_cuil|default:"—" }}</span> · {{ cliente.get_condicion_fiscal_display }}</dd></div>
+                <div><dt class="label">Domicilio fiscal</dt><dd>{{ cliente.domicilio_fiscal|default:"—" }}</dd></div>
+                <div><dt class="label">T&amp;C</dt><dd>{% if cliente.terminos_aceptados %}Aceptados el {{ cliente.fecha_aceptacion_terminos|date:"d/m/Y H:i" }}{% else %}<span class="text-amber-500">No aceptados</span>{% endif %}</dd></div>
+            </dl>
+        </div>
+        <form method="post" class="card card-pad">
+            {% csrf_token %}<input type="hidden" name="accion" value="notas">
+            <h3 class="label mb-2">Notas internas (el cliente no las ve)</h3>
+            {{ notas_form.notas_internas }}
+            <button class="btn btn-ghost btn-sm mt-3">Guardar notas</button>
+        </form>
+    </div>
+
+    <div class="lg:col-span-8 space-y-6">
+        <div class="card card-pad">
+            <h3 class="card-title mb-4">Servicios y sistemas</h3>
+            <div class="space-y-4">
+                {% for s in sistemas %}{% with c=s.c t=s.tenant %}
+                    <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="font-bold" style="color: {{ c.servicio.color }}">{{ c.servicio }}</span>
+                                    <span class="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800">{{ c.plan.nombre }}</span>
+                                    {% estado c.estado %}
+                                </div>
+                                <p class="text-xs muted mt-1">{{ c.precio|pesos }} {{ c.get_frecuencia_pago_display|lower }} · vence {{ c.fecha_vencimiento|date:"d/m/Y" }}{% if c.estado == 'activo' %} ({{ c.dias_para_vencer }} días){% endif %}</p>
+                                {% if t %}
+                                    <p class="text-xs mt-1">Tenant:
+                                        {% if rol_dev %}<a href="{% url 'devpanel:tenant' t.id %}" class="link font-mono">{{ t.schema_name }}</a>{% else %}<span class="font-mono">{{ t.schema_name }}</span>{% endif %}
+                                        {% estado t.estado %}
+                                        {% if t.url %}<a href="{{ t.url }}" target="_blank" rel="noopener" class="link ml-1">{{ t.dominio }} ↗</a>{% endif %}
+                                    </p>
+                                {% elif c.estado == 'activo' %}<p class="text-xs text-amber-500 mt-1">Sin tenant vinculado.</p>{% endif %}
+                            </div>
+                            <form method="post" class="flex flex-wrap gap-1.5">
+                                {% csrf_token %}<input type="hidden" name="contratacion_id" value="{{ c.id }}">
+                                {% if c.estado == 'pendiente' or c.estado == 'suspendido' %}<button name="accion" value="activar" class="btn btn-ok btn-sm" onclick="return confirm('¿Activar y aprovisionar el sistema?')">Activar</button>{% endif %}
+                                {% if c.estado == 'activo' %}
+                                    <button name="accion" value="renovar" class="btn btn-ghost btn-sm">+1 período</button>
+                                    <button name="accion" value="suspender" class="btn btn-danger btn-sm" onclick="return confirm('¿Suspender? También se suspende el tenant en el SaaS.')">Suspender</button>
+                                {% endif %}
+                                {% if c.estado != 'historico' %}<button name="accion" value="finalizar" class="btn btn-ghost btn-sm" onclick="return confirm('¿Dar de baja definitiva?')">Baja</button>{% endif %}
+                            </form>
+                        </div>
+                        {% if s.consumo %}
+                            <div class="grid sm:grid-cols-2 gap-x-6 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                {% include "partials/consumo.html" with items=s.consumo %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endwith %}{% empty %}
+                    <p class="text-sm muted text-center py-6">Este cliente no tiene servicios.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card overflow-hidden">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between"><h3 class="card-title">Facturas</h3><a href="{% url 'staff:facturacion' %}?cliente={{ cliente.id }}#nueva" class="text-xs link">+ Nueva</a></div>
+            <div class="overflow-x-auto"><table class="tbl">
+                <thead><tr><th>Comprobante</th><th>Período</th><th>Vence</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                {% for f in facturas %}
+                    <tr>
+                        <td class="font-semibold">{{ f.tipo_comprobante }} {{ f.numero_comprobante }}</td>
+                        <td>{{ f.periodo_facturado }}<span class="block text-xs muted">{{ f.contratacion.servicio|default:"" }}</span></td>
+                        <td class="text-xs">{{ f.fecha_vencimiento|date:"d/m/Y" }}</td>
+                        <td class="font-bold">{{ f.monto|pesos }}</td>
+                        <td>{% estado f.estado_real %}</td>
+                        <td class="text-right whitespace-nowrap">
+                            {% if f.archivo_pdf %}<a href="{% url 'staff:factura_pdf' f.id %}" target="_blank" class="btn btn-ghost btn-sm">PDF</a>{% endif %}
+                            {% if f.estado == 'pendiente' or f.estado == 'vencido' %}
+                                <form method="post" action="{% url 'staff:facturacion' %}" class="inline">{% csrf_token %}
+                                    <input type="hidden" name="accion" value="pagada"><input type="hidden" name="factura_id" value="{{ f.id }}"><input type="hidden" name="volver" value="{{ request.path }}">
+                                    <button class="btn btn-ok btn-sm">✓ Pagada</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}<tr><td colspan="6" class="text-center muted py-6">Sin facturas.</td></tr>{% endfor %}
+                </tbody>
+            </table></div>
+        </div>
+
+        <div class="card overflow-hidden">
+            <div class="p-5 border-b border-slate-200 dark:border-slate-800"><h3 class="card-title">Tickets y tareas</h3></div>
+            <table class="tbl"><tbody>
+                {% for t in tickets %}
+                    <tr>
+                        <td><a href="{% url 'staff:ticket' t.id %}" class="font-semibold link">#{{ t.id }} {{ t.asunto }}</a><span class="block text-xs muted">{{ t.get_tipo_display }}{% if t.contratacion %} · {{ t.contratacion.servicio }}{% endif %} · {{ t.created_at|date:"d/m/Y" }}</span></td>
+                        <td class="text-right">{% estado t.estado %}</td>
+                    </tr>
+                {% empty %}<tr><td class="text-center muted py-6">Sin tickets.</td></tr>{% endfor %}
+            </tbody></table>
+        </div>
+    </div>
+</div>
+{% endblock %}

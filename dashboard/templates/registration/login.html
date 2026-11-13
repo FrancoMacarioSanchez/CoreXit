@@ -1,172 +1,282 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
+{% load static %}<!DOCTYPE html>
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CoreX | Portal de Acceso</title>
+    <title>Ingresar · CoreX</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="{% static 'landing/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } }
+        };
+    </script>
     <style>
         body {
-            background-color: #020617;
-            color: #ffffff;
-            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #030303; color: #ededed; overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(99,102,241,.10), transparent 30%),
+                radial-gradient(circle at 85% 30%, rgba(139,92,246,.10), transparent 30%);
         }
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(59, 130, 246, 0.15);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        @keyframes gridPan { 0% { background-position: 0 0; } 100% { background-position: 0 40px; } }
+        .grid-pattern {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255,255,255,.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,.03) 1px, transparent 1px);
+            -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            animation: gridPan 10s linear infinite;
         }
-        /* Estilo personalizado para el scrollbar en el textarea */
-        textarea::-webkit-scrollbar {
-            width: 8px;
+        @keyframes blob { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(30px,-50px) scale(1.1); } }
+        @keyframes blobR { 0% { transform: translate(0,0) scale(1); } 100% { transform: translate(-30px,50px) scale(1.1); } }
+        .animate-blob { animation: blob 10s infinite alternate; }
+        .animate-blob-r { animation: blobR 12s infinite alternate; }
+        @keyframes shine { 0% { background-position: 200% center; } 100% { background-position: -200% center; } }
+        .text-grad {
+            background: linear-gradient(to right, #818cf8, #c084fc, #818cf8); background-size: 200% auto;
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            animation: shine 5s linear infinite;
         }
-        textarea::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
+        .panel {
+            background: linear-gradient(145deg, rgba(20,20,20,.85) 0%, rgba(10,10,10,.92) 100%);
+            backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,.07);
+            box-shadow: 0 10px 50px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
         }
+        @keyframes up { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+        .up { animation: up .7s cubic-bezier(.16,1,.3,1) both; }
+        .field {
+            width: 100%; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09);
+            border-radius: .85rem; padding: .8rem 1rem; font-size: .9rem; color: #fff; outline: none;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+        }
+        .field::placeholder { color: #5b5f6b; }
+        .field:focus { border-color: #6366f1; background: rgba(99,102,241,.06); box-shadow: 0 0 0 3px rgba(99,102,241,.18); }
+        select.field option { background: #121212; }
+        .lbl { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #8b8fa0; margin-bottom: .4rem; }
+        .btn-main {
+            width: 100%; border-radius: .85rem; padding: .85rem 1rem; font-weight: 700; font-size: .9rem; color: #fff;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 0 25px rgba(99,102,241,.35);
+            transition: transform .2s, box-shadow .2s, filter .2s;
+        }
+        .btn-main:hover { transform: translateY(-1px); box-shadow: 0 0 35px rgba(99,102,241,.5); filter: brightness(1.08); }
+        .btn-main:disabled { opacity: .6; cursor: wait; transform: none; }
+        .tab-on { background: rgba(255,255,255,.1); color: #fff; box-shadow: 0 1px 0 rgba(255,255,255,.08) inset; }
+        .tab-off { color: #8b8fa0; }
+        .tab-off:hover { color: #fff; }
+        @media (prefers-reduced-motion: reduce) { .grid-pattern, .animate-blob, .animate-blob-r, .text-grad, .up { animation: none; } }
     </style>
 </head>
-<body class="min-h-screen w-screen flex items-center justify-center relative py-10 px-4">
-    
-    <!-- Ampliamos a max-w-lg para acomodar mejor el formulario de registro -->
-    <div class="w-full max-w-lg glass-panel p-8 rounded-2xl">
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white">Portal CoreX</h1>
-            <p class="text-slate-400 text-xs mt-1">Gestión de sistemas y clientes</p>
+<body class="antialiased font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+
+<div class="fixed inset-0 overflow-hidden pointer-events-none -z-10" aria-hidden="true">
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/10 blur-[120px] animate-blob"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[120px] animate-blob-r"></div>
+    <div class="absolute inset-0 grid-pattern"></div>
+</div>
+
+<main class="min-h-screen grid lg:grid-cols-2">
+
+    <!-- Lado de marca -->
+    <section class="hidden lg:flex flex-col justify-between p-12 xl:p-16 up">
+        <a href="{% url 'landing-home' %}" class="flex items-center gap-3 w-fit">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,.45)]">
+                <span class="text-white font-black text-xl leading-none">C</span>
+            </div>
+            <span class="font-extrabold text-xl tracking-tight text-white">Core<span class="text-indigo-400">X</span></span>
+        </a>
+
+        <div class="max-w-lg">
+            <h1 class="text-4xl xl:text-5xl font-extrabold tracking-tight leading-[1.1] text-white">
+                Tus sistemas.<br><span class="text-grad">Un solo lugar.</span>
+            </h1>
+            <p class="mt-5 text-neutral-400 text-lg">
+                Contratá, pagá y administrá FacturAR, GestionAR y el resto de las soluciones de CoreX desde tu cuenta.
+            </p>
+            <ul class="mt-10 space-y-5 text-sm">
+                <li class="flex items-start gap-4">
+                    <span class="mt-0.5 w-9 h-9 shrink-0 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-300">
+                        <svg class="w-4.5 h-4.5 w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.6-4A11.96 11.96 0 0112 2.9 11.96 11.96 0 013.4 6 12 12 0 003 9c0 5.6 3.8 10.3 9 11.6 5.2-1.3 9-6 9-11.6 0-1-.1-2-.4-3z"/></svg>
+                    </span>
+                    <span><span class="block font-semibold text-white">Tus servicios y planes</span><span class="text-neutral-500">Activá, cambiá o pausá lo que contrataste cuando quieras.</span></span>
+                </li>
+                <li class="flex items-start gap-4">
+                    <span class="mt-0.5 w-9 h-9 shrink-0 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-300">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                    </span>
+                    <span><span class="block font-semibold text-white">Facturas y pagos</span><span class="text-neutral-500">Descargá tus comprobantes y pagá con Mercado Pago.</span></span>
+                </li>
+                <li class="flex items-start gap-4">
+                    <span class="mt-0.5 w-9 h-9 shrink-0 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-300">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.4 5.6a9 9 0 010 12.8M5.6 18.4a9 9 0 010-12.8M15.5 8.5a5 5 0 010 7M8.5 15.5a5 5 0 010-7M12 12h.01"/></svg>
+                    </span>
+                    <span><span class="block font-semibold text-white">Soporte directo</span><span class="text-neutral-500">Abrí un ticket y seguí la conversación con el equipo.</span></span>
+                </li>
+            </ul>
         </div>
 
-        {% if login_form.errors or registro_form.errors %}
-            <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl mb-4 text-sm text-center">
-                Por favor, verificá los datos ingresados. Revisa que el usuario no exista y las contraseñas coincidan.
-            </div>
-        {% endif %}
+        <p class="text-xs text-neutral-600">&copy; 2026 CoreX. Todos los derechos reservados.</p>
+    </section>
 
-        <!-- Pestañas para alternar -->
-        <div class="flex bg-slate-900/80 p-1 rounded-xl mb-6 border border-slate-800">
-            <button type="button" onclick="switchTab('login')" id="btn-login" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-blue-600 text-white shadow">Ingresar</button>
-            <button type="button" onclick="switchTab('register')" id="btn-register" class="flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white">Registrarse</button>
+    <!-- Formulario -->
+    <section class="flex items-center justify-center px-5 py-10 sm:px-8">
+        <div class="w-full max-w-md up" style="animation-delay:.12s">
+
+            <a href="{% url 'landing-home' %}" class="lg:hidden flex items-center justify-center gap-3 mb-8">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,.45)]">
+                    <span class="text-white font-black text-xl leading-none">C</span>
+                </div>
+                <span class="font-extrabold text-xl tracking-tight text-white">Core<span class="text-indigo-400">X</span></span>
+            </a>
+
+            <div class="panel rounded-3xl p-7 sm:p-9">
+                <div class="mb-6">
+                    <h2 id="titulo" class="text-2xl font-bold text-white tracking-tight"></h2>
+                    <p id="subtitulo" class="text-sm text-neutral-500 mt-1"></p>
+                </div>
+
+                {% if login_form.errors %}
+                    <div role="alert" class="flex gap-3 items-start bg-red-500/10 border border-red-500/25 text-red-300 p-3.5 rounded-xl mb-5 text-sm">
+                        <svg class="w-5 h-5 shrink-0 mt-px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>
+                        <span>Usuario o contraseña incorrectos. Revisá los datos e intentá de nuevo.</span>
+                    </div>
+                {% endif %}
+                {% if registro_form.errors %}
+                    <div role="alert" class="bg-red-500/10 border border-red-500/25 text-red-300 p-3.5 rounded-xl mb-5 text-sm">
+                        <p class="font-semibold mb-1">Revisá estos datos:</p>
+                        <ul class="list-disc list-inside text-xs space-y-0.5">
+                            {% for campo, errores in registro_form.errors.items %}{% for e in errores %}<li>{% if campo != '__all__' %}{{ campo|capfirst }}: {% endif %}{{ e }}</li>{% endfor %}{% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                {% for m in messages %}
+                    <div class="bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 p-3.5 rounded-xl mb-5 text-sm">{{ m }}</div>
+                {% endfor %}
+
+                <div class="flex p-1 rounded-xl mb-6 bg-white/[0.04] border border-white/[0.07]" role="tablist">
+                    <button type="button" role="tab" id="btn-login" onclick="switchTab('login')" class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all">Ingresar</button>
+                    <button type="button" role="tab" id="btn-register" onclick="switchTab('register')" class="flex-1 py-2 text-sm font-semibold rounded-lg transition-all">Crear cuenta</button>
+                </div>
+
+                <!-- Login -->
+                <form method="post" id="form-login" class="space-y-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="action_login" value="1">
+                    <input type="hidden" name="next" value="{{ next }}">
+
+                    <div>
+                        <label class="lbl" for="l-user">Usuario</label>
+                        <input class="field" type="text" id="l-user" name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Tu usuario" value="{{ login_form.username.value|default:'' }}">
+                    </div>
+                    <div>
+                        <label class="lbl" for="l-pass">Contraseña</label>
+                        <div class="relative">
+                            <input class="field pr-12" type="password" id="l-pass" name="password" required autocomplete="current-password" placeholder="••••••••">
+                            <button type="button" onclick="verClave('l-pass', this)" class="absolute inset-y-0 right-0 px-4 text-neutral-500 hover:text-white transition-colors" aria-label="Mostrar contraseña" aria-pressed="false">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3" stroke-width="1.8"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-main">Ingresar</button>
+                </form>
+
+                <!-- Registro -->
+                <form method="post" id="form-register" class="space-y-4 hidden">
+                    {% csrf_token %}
+                    <input type="hidden" name="action_register" value="1">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="lbl" for="r-user">Usuario</label>
+                            <input class="field" id="r-user" type="text" name="username" value="{{ registro_form.username.value|default:'' }}" required autocomplete="username" autocapitalize="none" placeholder="Ej: perez_admin">
+                        </div>
+                        <div>
+                            <label class="lbl" for="r-pass">Contraseña</label>
+                            <input class="field" id="r-pass" type="password" name="password" required autocomplete="new-password" placeholder="••••••••">
+                        </div>
+                        <div>
+                            <label class="lbl" for="r-nombre">Nombre completo</label>
+                            <input class="field" id="r-nombre" type="text" name="nombre" value="{{ registro_form.nombre.value|default:'' }}" required autocomplete="name" placeholder="Tu nombre">
+                        </div>
+                        <div>
+                            <label class="lbl" for="r-email">Correo electrónico</label>
+                            <input class="field" id="r-email" type="email" name="email" value="{{ registro_form.email.value|default:'' }}" required autocomplete="email" placeholder="mail@ejemplo.com">
+                        </div>
+                        <div>
+                            <label class="lbl" for="r-empresa">Razón social / empresa</label>
+                            <input class="field" id="r-empresa" type="text" name="empresa" value="{{ registro_form.empresa.value|default:'' }}" autocomplete="organization" placeholder="Nombre de tu negocio">
+                        </div>
+                        <div>
+                            <label class="lbl" for="r-tel">Teléfono</label>
+                            <input class="field" id="r-tel" type="tel" name="telefono" value="{{ registro_form.telefono.value|default:'' }}" autocomplete="tel" placeholder="+54 9 11...">
+                        </div>
+                        <div>
+                            <label class="lbl" for="r-cuit">CUIT / CUIL</label>
+                            <input class="field" id="r-cuit" type="text" name="cuit_cuil" value="{{ registro_form.cuit_cuil.value|default:'' }}" required inputmode="numeric" placeholder="20-12345678-9">
+                        </div>
+                        <div>
+                            <label class="lbl" for="r-cond">Condición fiscal</label>
+                            <select class="field" id="r-cond" name="condicion_fiscal" required>
+                                <option value="consumidor_final">Consumidor Final</option>
+                                <option value="monotributo">Monotributo</option>
+                                <option value="responsable_inscripto">Responsable Inscripto</option>
+                                <option value="exento">Sujeto Exento</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="lbl" for="r-dom">Domicilio fiscal</label>
+                        <textarea class="field resize-none" id="r-dom" name="domicilio_fiscal" rows="2" autocomplete="street-address" placeholder="Calle, número, localidad, provincia, CP">{{ registro_form.domicilio_fiscal.value|default:'' }}</textarea>
+                    </div>
+                    <label class="flex items-start gap-3 text-xs text-neutral-400 cursor-pointer">
+                        <input type="checkbox" name="aceptar_terminos" required class="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 accent-indigo-500">
+                        <span>Leí y acepto los <a href="{% url 'terminos_condiciones' %}" target="_blank" rel="noopener" class="text-indigo-300 hover:underline">Términos y Condiciones</a> y las Políticas de Privacidad de CoreX.</span>
+                    </label>
+                    <button type="submit" class="btn-main">Crear cuenta y continuar</button>
+                </form>
+            </div>
+
+            <p class="text-center mt-6">
+                <a href="{% url 'landing-home' %}" class="text-xs text-neutral-500 hover:text-indigo-300 transition-colors">← Volver al inicio</a>
+            </p>
         </div>
+    </section>
+</main>
 
-        <!-- Formulario de Login -->
-        <form method="post" id="form-login" class="flex flex-col gap-4">
-            {% csrf_token %}
-            <input type="hidden" name="action_login" value="1">
-            
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-2">USUARIO</label>
-                <input type="text" name="username" required placeholder="Tu usuario" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
-            </div>
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-2">CONTRASEÑA</label>
-                <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 text-sm">
-            </div>
-            
-            <button type="submit" class="mt-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] text-sm">
-                Iniciar Sesión
-            </button>
-        </form>
-
-        <!-- Formulario de Registro (Oculto por defecto) -->
-        <form method="post" id="form-register" class="flex flex-col gap-4 hidden">
-            {% csrf_token %}
-            <input type="hidden" name="action_register" value="1">
-            
-            <!-- Datos de Usuario -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">USUARIO</label>
-                    <input type="text" name="username" required placeholder="Ej: perez_admin" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">CONTRASEÑA</label>
-                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
-                </div>
-            </div>
-
-            <!-- Datos de Contacto -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">NOMBRE COMPLETO</label>
-                    <input type="text" name="nombre" required placeholder="Tu nombre" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">CORREO ELECTRÓNICO</label>
-                    <input type="email" name="email" required placeholder="mail@ejemplo.com" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
-                </div>
-            </div>
-
-            <!-- Datos Fiscales -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">RAZÓN SOCIAL / EMPRESA</label>
-                    <input type="text" name="empresa" placeholder="Nombre de tu negocio" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">TELÉFONO</label>
-                    <input type="text" name="telefono" placeholder="+54 9 11..." class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">CUIT / CUIL</label>
-                    <input type="text" name="cuit_cuil" required placeholder="20-12345678-9" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-mono text-blue-400 mb-1">CONDICIÓN FISCAL</label>
-                    <select name="condicion_fiscal" required class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm appearance-none">
-                        <option value="consumidor_final">Consumidor Final</option>
-                        <option value="monotributo">Monotributo</option>
-                        <option value="responsable_inscripto">Responsable Inscripto</option>
-                        <option value="exento">Sujeto Exento</option>
-                    </select>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-mono text-blue-400 mb-1">DOMICILIO FISCAL</label>
-                <textarea name="domicilio_fiscal" rows="2" placeholder="Calle, Número, Localidad, Provincia, CP" class="w-full bg-slate-900/60 border border-slate-700/50 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm resize-none"></textarea>
-            </div>
-
-            <!-- Términos y Condiciones -->
-            <div class="flex items-start gap-2 mt-2">
-                <input type="checkbox" name="aceptar_terminos" id="aceptar_terminos" required class="mt-1 w-4 h-4 rounded border-slate-700 bg-slate-900/60 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-slate-900">
-                <label for="aceptar_terminos" class="text-xs text-slate-300">
-                    He leído y acepto los <a href="#" target="_blank" class="text-emerald-400 hover:underline">Términos y Condiciones</a> y las Políticas de Privacidad de CoreX.
-                </label>
-            </div>
-            
-            <button type="submit" class="mt-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] text-sm">
-                Crear Cuenta y Continuar
-            </button>
-        </form>
-
-        <div class="text-center mt-6">
-            <a href="{% url 'landing-home' %}" class="text-xs text-slate-500 hover:text-blue-400 transition-colors">← Volver a la Landing</a>
-        </div>
-    </div>
-
-    <script>
-        function switchTab(tab) {
-            const loginForm = document.getElementById('form-login');
-            const registerForm = document.getElementById('form-register');
-            const btnLogin = document.getElementById('btn-login');
-            const btnRegister = document.getElementById('btn-register');
-
-            if (tab === 'login') {
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                btnLogin.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-blue-600 text-white shadow";
-                btnRegister.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white";
-            } else {
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-                btnRegister.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all bg-emerald-600 text-white shadow";
-                btnLogin.className = "flex-1 py-2 text-xs font-semibold rounded-lg transition-all text-slate-400 hover:text-white";
-            }
-        }
-    </script>
+<script>
+    var TEXTOS = {
+        login: ['Bienvenido de nuevo', 'Ingresá a tu cuenta de CoreX.'],
+        register: ['Creá tu cuenta', 'Unos datos y ya podés contratar.']
+    };
+    function switchTab(tab) {
+        var login = tab === 'login';
+        document.getElementById('form-login').classList.toggle('hidden', !login);
+        document.getElementById('form-register').classList.toggle('hidden', login);
+        var bl = document.getElementById('btn-login'), br = document.getElementById('btn-register');
+        bl.className = 'flex-1 py-2 text-sm font-semibold rounded-lg transition-all ' + (login ? 'tab-on' : 'tab-off');
+        br.className = 'flex-1 py-2 text-sm font-semibold rounded-lg transition-all ' + (login ? 'tab-off' : 'tab-on');
+        bl.setAttribute('aria-selected', login); br.setAttribute('aria-selected', !login);
+        document.getElementById('titulo').textContent = TEXTOS[tab][0];
+        document.getElementById('subtitulo').textContent = TEXTOS[tab][1];
+    }
+    function verClave(id, btn) {
+        var i = document.getElementById(id), ver = i.type === 'password';
+        i.type = ver ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', ver);
+        btn.setAttribute('aria-label', ver ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    }
+    document.querySelectorAll('form').forEach(function (f) {
+        f.addEventListener('submit', function () {
+            var b = f.querySelector('.btn-main');
+            if (b && f.checkValidity()) { b.disabled = true; b.textContent = 'Un momento…'; }
+        });
+    });
+    switchTab('{{ tab|default:"login" }}');
+    if ('{{ tab|default:"login" }}' === 'login') { var u = document.getElementById('l-user'); if (u && !u.value) u.focus(); }
+</script>
 </body>
 </html>

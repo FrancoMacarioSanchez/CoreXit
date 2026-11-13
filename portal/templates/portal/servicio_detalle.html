@@ -1,0 +1,124 @@
+{% extends "portal/base.html" %}
+{% load corex %}
+{% block title %}{{ c.servicio.nombre }} | CoreX{% endblock %}
+{% block breadcrumb %}<a href="{% url 'portal:servicios' %}" class="text-[11px] text-slate-400 hover:text-indigo-500">← Mis servicios</a>{% endblock %}
+{% block header_title %}{{ c.servicio.nombre }} · {{ c.plan.nombre }}{% endblock %}
+{% block header_actions %}
+    {% if c.url_acceso %}<a href="{{ c.url_acceso }}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Ingresar al sistema ↗</a>{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card card-pad space-y-4">
+        <div class="flex items-center justify-between">
+            <h3 class="card-title">Tu plan</h3>
+            {% estado c.estado %}
+        </div>
+        <dl class="text-sm space-y-2">
+            <div class="flex justify-between"><dt class="muted">Precio</dt><dd class="font-semibold">{{ c.precio|pesos }} / {{ c.get_frecuencia_pago_display|lower }}</dd></div>
+            <div class="flex justify-between"><dt class="muted">Renovación</dt><dd class="font-semibold">{{ c.fecha_vencimiento|date:"d/m/Y" }}</dd></div>
+            {% if tenant %}
+                <div class="flex justify-between"><dt class="muted">Sistema</dt><dd>{% estado tenant.estado %}</dd></div>
+                {% if ultimo %}<div class="flex justify-between"><dt class="muted">Últimos datos</dt><dd>{{ ultimo.fecha|date:"d/m/Y" }}</dd></div>{% endif %}
+            {% endif %}
+        </dl>
+        {% if planes_superiores %}
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800">
+                <p class="text-xs muted mb-2">¿Necesitás más capacidad?</p>
+                <form method="post" action="{% url 'portal:contratar' %}" class="flex gap-2">
+                    {% csrf_token %}
+                    <select name="plan" class="input">
+                        {% for p in planes_superiores %}<option value="{{ p.id }}">{{ p.nombre }} · {{ p.precio_mensual|pesos }}/mes</option>{% endfor %}
+                    </select>
+                    <input type="hidden" name="frecuencia" value="{{ c.frecuencia_pago }}">
+                    <button class="btn btn-ghost btn-sm whitespace-nowrap">Mejorar</button>
+                </form>
+            </div>
+        {% endif %}
+        <a href="{% url 'portal:soporte' %}?servicio={{ c.id }}" class="btn btn-ghost btn-sm w-full">Pedir ayuda sobre este servicio</a>
+    </div>
+
+    <div class="card card-pad lg:col-span-2">
+        <h3 class="card-title mb-1">Consumo del plan</h3>
+        <p class="text-xs muted mb-5">Contadores: acumulado del mes en curso. Niveles: valor actual.</p>
+        {% if tenant %}
+            {% include "partials/consumo.html" with items=consumo %}
+        {% else %}
+            <p class="text-sm muted">{% if c.estado == 'activo' %}Estamos preparando tu sistema. En cuanto esté listo vas a ver tu consumo acá.{% else %}El servicio no está activo.{% endif %}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if chart.graficos %}
+<div class="card card-pad">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h3 class="card-title">Estadísticas de uso</h3>
+        <div class="flex rounded-xl border border-slate-200 dark:border-slate-700 p-1 text-xs font-semibold">
+            {% for d in dias_opciones %}
+                <a href="?dias={{ d }}" class="px-3 py-1 rounded-lg {% if d == dias %}bg-indigo-600 text-white{% else %}muted hover:text-indigo-500{% endif %}">{{ d }} días</a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for g in chart.graficos %}
+            <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+                <p class="text-sm font-semibold mb-2">{{ g.nombre }} {% if g.unidad %}<span class="text-xs muted">({{ g.unidad }})</span>{% endif %}</p>
+                <div class="h-44"><canvas id="g-{{ forloop.counter0 }}"></canvas></div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{{ chart|json_script:"data-chart" }}
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+            <h3 class="card-title">Facturas de este servicio</h3>
+            <a href="{% url 'portal:facturas' %}" class="text-xs link">Todas →</a>
+        </div>
+        <table class="tbl"><tbody>
+            {% for f in facturas %}
+                <tr>
+                    <td><span class="font-semibold">{{ f.periodo_facturado }}</span><span class="block text-xs muted">{{ f.tipo_comprobante }} {{ f.numero_comprobante }}</span></td>
+                    <td class="font-bold">{{ f.monto|pesos }}</td>
+                    <td class="text-right">{% estado f.estado_real %}</td>
+                </tr>
+            {% empty %}
+                <tr><td class="text-center muted py-8">Sin facturas para este servicio.</td></tr>
+            {% endfor %}
+        </tbody></table>
+    </div>
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800"><h3 class="card-title">Consultas sobre este servicio</h3></div>
+        <table class="tbl"><tbody>
+            {% for t in tickets %}
+                <tr>
+                    <td><a href="{% url 'portal:ticket' t.id %}" class="font-semibold link">#{{ t.id }} {{ t.asunto }}</a></td>
+                    <td class="text-right">{% estado t.estado %}</td>
+                </tr>
+            {% empty %}
+                <tr><td class="text-center muted py-8">No hiciste consultas sobre este servicio.</td></tr>
+            {% endfor %}
+        </tbody></table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const ch = leerJSON('data-chart');
+    if (ch) {
+        ch.graficos.forEach((g, i) => {
+            const color = PALETA[i % PALETA.length];
+            new Chart(document.getElementById('g-' + i), {
+                type: g.tipo === 'contador' ? 'bar' : 'line',
+                data: { labels: ch.labels, datasets: [{ label: g.nombre, data: g.datos, backgroundColor: g.tipo === 'contador' ? color : color + '22',
+                        borderColor: color, borderRadius: 4, fill: g.tipo !== 'contador', tension: .35, pointRadius: 0, spanGaps: true }] },
+                options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmtNum(c.raw) + (g.unidad ? ' ' + g.unidad : '') } } },
+                           scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }, y: { beginAtZero: true } } }
+            });
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+<div class="overflow-x-auto">
+<table class="tbl">
+    <thead><tr><th>Cuándo</th><th>SaaS / Tenant</th><th>Acción</th><th>Resultado</th><th>Detalle</th></tr></thead>
+    <tbody>
+    {% for e in eventos %}
+        <tr>
+            <td class="text-xs whitespace-nowrap">{{ e.creado|date:"d/m H:i:s" }}</td>
+            <td class="text-xs">{{ e.servicio|default:"—" }}{% if e.tenant %}<a href="{% url 'devpanel:tenant' e.tenant_id %}" class="block font-mono link">{{ e.tenant.schema_name }}</a>{% endif %}</td>
+            <td class="text-xs"><span class="font-mono">{% if e.direccion == 'saliente' %}→{% else %}←{% endif %} {{ e.accion }}</span>{% if e.metodo %}<span class="block muted">{{ e.metodo }}{% if e.duracion_ms is not None %} · {{ e.duracion_ms }} ms{% endif %}</span>{% endif %}</td>
+            <td>{% if e.exito %}<span class="badge badge-ok">{{ e.status_code|default:"OK" }}</span>{% else %}<span class="badge badge-bad">{{ e.status_code|default:"ERROR" }}</span>{% endif %}</td>
+            <td class="text-xs font-mono muted max-w-md"><details><summary class="cursor-pointer truncate">{{ e.detalle|truncatechars:80 }}</summary><pre class="whitespace-pre-wrap break-all mt-2 text-[11px]">{{ e.url }}
+{{ e.detalle }}</pre></details></td>
+        </tr>
+    {% empty %}<tr><td colspan="5" class="text-center muted py-8">Sin eventos todavía.</td></tr>{% endfor %}
+    </tbody>
+</table>
+</div>

@@ -1,0 +1,25 @@
+{% load corex %}
+{# Barras de consumo vs. límite del plan. Espera: items (lista de servicios.metricas.consumo) #}
+<div class="space-y-4">
+    {% for m in items %}
+        <div>
+            <div class="flex items-baseline justify-between gap-2 text-sm">
+                <span class="font-semibold">{{ m.nombre }} <span class="text-[11px] font-normal text-slate-400">({{ m.periodo }})</span></span>
+                <span class="font-mono text-xs">
+                    <strong class="text-slate-900 dark:text-white">{{ m.valor|num }}</strong>{% if m.limite %} / {{ m.limite|num }}{% endif %} {{ m.unidad }}
+                </span>
+            </div>
+            {% if m.limite %}
+                <div class="mt-1.5 h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                    <div class="h-full rounded-full {{ m.pct|barra }}" style="width: {{ m.pct|ancho }}%"></div>
+                </div>
+                {% if m.pct >= 90 %}<p class="text-[11px] text-red-500 mt-1">Estás al {{ m.pct|num }}% del límite de tu plan.</p>
+                {% elif m.pct >= 75 %}<p class="text-[11px] text-amber-500 mt-1">Usaste el {{ m.pct|num }}% de tu plan.</p>{% endif %}
+            {% else %}
+                <p class="text-[11px] text-slate-400 mt-0.5">Sin límite en tu plan</p>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p class="text-sm text-slate-400">Este servicio todavía no reporta consumo.</p>
+    {% endfor %}
+</div>

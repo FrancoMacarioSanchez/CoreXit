@@ -1,0 +1,51 @@
+{% extends "staff/base.html" %}
+{% load corex %}
+{% block title %}Clientes | CoreX Staff{% endblock %}
+{% block header_title %}Clientes{% endblock %}
+
+{% block content %}
+<form class="flex flex-col sm:flex-row gap-3">
+    <input type="search" name="q" value="{{ q }}" placeholder="Buscar por nombre, empresa, CUIT, email o usuario…" class="input sm:max-w-md">
+    <select name="filtro" class="input sm:w-56" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="activos" {% if filtro == 'activos' %}selected{% endif %}>Con servicio activo</option>
+        <option value="mora" {% if filtro == 'mora' %}selected{% endif %}>En mora</option>
+        <option value="sin_servicio" {% if filtro == 'sin_servicio' %}selected{% endif %}>Sin servicio activo</option>
+    </select>
+    <button class="btn btn-primary">Buscar</button>
+</form>
+
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="tbl">
+            <thead><tr><th>Cliente</th><th>CUIT / Condición</th><th>Servicios</th><th>Estado de cuenta</th><th class="text-right"></th></tr></thead>
+            <tbody>
+                {% for cli in clientes %}
+                    <tr>
+                        <td>
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-full bg-indigo-500/10 text-indigo-500 flex items-center justify-center text-xs font-bold shrink-0">{{ cli.iniciales }}</div>
+                                <div><a href="{% url 'staff:cliente' cli.id %}" class="font-bold hover:text-indigo-500">{{ cli.nombre_visible }}</a>
+                                    <span class="block text-xs muted">{{ cli.nombre }} · {% firstof cli.email cli.user.email %}</span></div>
+                            </div>
+                        </td>
+                        <td><span class="font-mono text-xs">{{ cli.cuit_cuil|default:"—" }}</span><span class="block text-xs muted">{{ cli.get_condicion_fiscal_display }}</span></td>
+                        <td>
+                            {% for c in cli.contrataciones.all %}{% if c.estado != 'historico' %}
+                                <span class="badge {{ c.estado|badge }} mr-1 mb-1 normal-case">{{ c.servicio.prefijo|default:c.servicio }} · {{ c.plan.nombre }}</span>
+                            {% endif %}{% empty %}<span class="text-xs muted">—</span>{% endfor %}
+                        </td>
+                        <td>
+                            {% if cli.n_vencidas %}<span class="badge badge-bad">{{ cli.n_vencidas }} vencida{{ cli.n_vencidas|pluralize }}</span>{% else %}<span class="badge badge-ok">Al día</span>{% endif %}
+                            {% if cli.n_tickets %}<span class="badge badge-warn">{{ cli.n_tickets }} ticket{{ cli.n_tickets|pluralize }}</span>{% endif %}
+                        </td>
+                        <td class="text-right"><a href="{% url 'staff:cliente' cli.id %}" class="btn btn-ghost btn-sm">Legajo →</a></td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center muted py-10">Sin resultados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

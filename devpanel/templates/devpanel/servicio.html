@@ -1,0 +1,141 @@
+{% extends "devpanel/base.html" %}
+{% load corex %}
+{% block title %}{{ s.nombre }} | Dev Console{% endblock %}
+{% block header_title %}<span style="color: {{ s.color }}">●</span> {{ s.nombre }}{% endblock %}
+{% block header_actions %}
+    <span class="badge {{ salud.clase }}">{{ salud.texto }}</span>
+    <form method="post" class="flex gap-2">{% csrf_token %}
+        <button name="accion" value="health" class="btn btn-ghost btn-sm" {% if not s.tiene_api %}disabled{% endif %}>Health check</button>
+        <button name="accion" value="sync" class="btn btn-primary btn-sm" {% if not s.tiene_api %}disabled{% endif %}>Sincronizar métricas</button>
+    </form>
+{% endblock %}
+
+{% block content %}
+{% if not s.tiene_api %}
+    <div class="card p-4 border-amber-500/40 bg-amber-500/5 text-sm">Este SaaS todavía no tiene la API CoreX configurada. Los tenants nuevos se aprovisionan a mano (se crea una tarea interna) y las métricas solo llegan si el SaaS las empuja. Configurá <strong>API URL</strong> y <strong>API token</strong> abajo.</div>
+{% endif %}
+
+{% if chart.series %}
+<div class="card card-pad">
+    <h3 class="card-title mb-1">Uso total del SaaS (30 días)</h3>
+    <p class="text-xs muted mb-4">Suma diaria de las métricas destacadas de todos los tenants.</p>
+    <div class="h-64"><canvas id="chartTotal"></canvas></div>
+</div>
+{% endif %}
+
+<div class="card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between">
+        <h3 class="card-title">Tenants ({{ filas|length }})</h3>
+        <div class="flex flex-wrap gap-2">
+            <form class="flex gap-2">
+                <input type="search" name="q" value="{{ q }}" placeholder="Nombre, schema o dominio" class="input !w-56">
+                <select name="estado" class="input !w-44" onchange="this.form.submit()">
+                    <option value="">Todos los estados</option>
+                    {% for v, l in estados %}<option value="{{ v }}" {% if estado == v %}selected{% endif %}>{{ l }}</option>{% endfor %}
+                </select>
+            </form>
+            <form method="post">{% csrf_token %}<button name="accion" value="importar" class="btn btn-ghost btn-sm h-full" {% if not s.tiene_api %}disabled{% endif %} title="Trae los tenants que ya existen en el SaaS">Importar del SaaS</button></form>
+            <a href="{% url 'devpanel:tenant_nuevo' %}?servicio={{ s.id }}" class="btn btn-primary btn-sm">+ Tenant</a>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="tbl">
+            <thead><tr><th>Tenant</th><th>Cliente / Plan</th><th>Estado</th>{% for d in destacadas %}<th class="text-right">{{ d.nombre }}</th>{% endfor %}<th>Último dato</th></tr></thead>
+            <tbody>
+                {% for f in filas %}{% with t=f.t %}
+                    <tr>
+                        <td><a href="{% url 'devpanel:tenant' t.id %}" class="font-semibold link">{{ t.nombre }}</a><span class="block text-xs font-mono muted">{{ t.schema_name }}{% if t.dominio %} · {{ t.dominio }}{% endif %}</span></td>
+                        <td class="text-xs">{% if t.cliente %}<a href="{% url 'staff:cliente' t.cliente_id %}" class="link">{{ t.cliente.nombre_visible }}</a>{% else %}<span class="text-amber-500">Sin cliente</span>{% endif %}<span class="block muted">{{ t.contratacion.plan.nombre|default:"Sin contratación" }}</span></td>
+                        <td>{% estado t.estado %}</td>
+                        {% for d in destacadas %}<td class="text-right font-mono text-sm">{{ f.valores|get_item:d.clave|num }}</td>{% endfor %}
+                        <td class="text-xs muted whitespace-nowrap">{% if t.ultimo_sync %}hace {{ t.ultimo_sync|timesince }}{% else %}nunca{% endif %}</td>
+                    </tr>
+                {% endwith %}{% empty %}
+                    <tr><td colspan="10" class="text-center muted py-10">No hay tenants{% if estado or q %} con ese filtro{% endif %}.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <div class="card card-pad space-y-5">
+        <h3 class="card-title">Integración</h3>
+        <div class="space-y-3 text-sm">
+            <p class="label">El SaaS empuja métricas a</p>
+            <div class="flex gap-2"><code class="input font-mono text-xs truncate">POST {{ ingest_url }}</code><button type="button" class="btn btn-ghost btn-sm" onclick="copiar('{{ ingest_url }}', this)">Copiar</button></div>
+            <p class="label">y avisa cambios de estado a</p>
+            <div class="flex gap-2"><code class="input font-mono text-xs truncate">POST {{ estado_url }}</code><button type="button" class="btn btn-ghost btn-sm" onclick="copiar('{{ estado_url }}', this)">Copiar</button></div>
+            <p class="label">con el header</p>
+            <div class="flex gap-2">
+                <code class="input font-mono text-xs truncate">Authorization: Bearer {{ s.ingest_token|enmascarar }}</code>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="copiar('{{ s.ingest_token }}', this)">Copiar token</button>
+                <form method="post" onsubmit="return confirm('El token actual deja de funcionar. ¿Seguro?')">{% csrf_token %}<button name="accion" value="rotar_token" class="btn btn-danger btn-sm">Rotar</button></form>
+            </div>
+        </div>
+        <form method="post" class="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            {% csrf_token %}<input type="hidden" name="accion" value="config">
+            <p class="label">El Hub llama al SaaS en</p>
+            <div class="grid grid-cols-2 gap-3">
+                {% for campo in config_form %}
+                    <div class="{% if campo.name == 'api_url' or campo.name == 'api_token' %}col-span-2{% endif %}">
+                        <label class="label">{{ campo.label }}</label>{{ campo }}{{ campo.errors }}
+                        {% if campo.help_text %}<p class="text-[11px] muted mt-1">{{ campo.help_text }}</p>{% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="btn btn-primary btn-sm">Guardar configuración</button>
+        </form>
+    </div>
+
+    <div class="card card-pad space-y-4">
+        <div>
+            <h3 class="card-title">Métricas que reporta {{ s.nombre }}</h3>
+            <p class="text-xs muted">Definen cómo se muestran las claves del JSON. Las <em>visibles</em> las ve el cliente; las <em>destacadas</em> aparecen en la tabla de tenants. Los límites por plan se cargan en el admin (Planes).</p>
+        </div>
+        <table class="tbl">
+            <thead><tr><th>Clave</th><th>Nombre</th><th>Tipo</th><th>Flags</th><th></th></tr></thead>
+            <tbody>
+                {% for d in definiciones %}
+                    <tr>
+                        <td class="font-mono text-xs">{{ d.clave }}</td>
+                        <td class="text-sm">{{ d.nombre }}{% if d.unidad %} <span class="muted">({{ d.unidad }})</span>{% endif %}</td>
+                        <td class="text-xs">{{ d.tipo }}</td>
+                        <td class="text-xs">{% if d.visible_cliente %}<span class="badge badge-info">cliente</span>{% endif %}{% if d.destacada %}<span class="badge badge-ok">destacada</span>{% endif %}</td>
+                        <td class="text-right"><form method="post" onsubmit="return confirm('¿Eliminar la definición?')">{% csrf_token %}<input type="hidden" name="metrica_id" value="{{ d.id }}"><button name="accion" value="borrar_metrica" class="btn btn-danger btn-sm">✕</button></form></td>
+                    </tr>
+                {% empty %}<tr><td colspan="5" class="text-center muted py-6">Sin métricas definidas.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+        <form method="post" class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+            {% csrf_token %}<input type="hidden" name="accion" value="metrica">
+            {% for campo in metrica_form %}
+                {% if campo.field.widget.input_type == 'checkbox' %}
+                    <label class="flex items-center gap-2 text-sm">{{ campo }} {{ campo.label }}</label>
+                {% else %}
+                    <div class="{% if campo.name == 'tipo' %}col-span-2{% endif %}"><label class="label">{{ campo.label }}</label>{{ campo }}{{ campo.errors }}</div>
+                {% endif %}
+            {% endfor %}
+            <button class="btn btn-ghost btn-sm col-span-2">+ Agregar métrica</button>
+        </form>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between"><h3 class="card-title">Llamadas recientes</h3><a href="{% url 'devpanel:eventos' %}?servicio={{ s.id }}" class="text-xs link">Ver todas →</a></div>
+    {% include "devpanel/_tabla_eventos.html" %}
+</div>
+{{ chart|json_script:"data-total" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const tot = leerJSON('data-total');
+    if (tot && tot.series.length) new Chart(document.getElementById('chartTotal'), {
+        type: 'line',
+        data: { labels: tot.labels, datasets: tot.series.map((s, i) => ({ label: s.nombre, data: s.datos, borderColor: PALETA[i % PALETA.length],
+                backgroundColor: PALETA[i % PALETA.length] + '22', tension: .35, pointRadius: 0, spanGaps: true })) },
+        options: { interaction: { mode: 'index', intersect: false }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }, y: { beginAtZero: true } } }
+    });
+</script>
+{% endblock %}

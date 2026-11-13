@@ -1,0 +1,72 @@
+{% extends "staff/base.html" %}
+{% load corex %}
+{% block title %}Facturación | CoreX Staff{% endblock %}
+{% block header_title %}Facturación y cobros{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+    {% with v=cobranza.pendiente_monto|pesos p=cobranza.pendiente_count|stringformat:"s"|add:" facturas" %}{% include "partials/kpi.html" with titulo="Pendiente" valor=v pie=p color="!text-amber-500" %}{% endwith %}
+    {% with v=cobranza.vencido_monto|pesos p=cobranza.vencido_count|stringformat:"s"|add:" facturas" %}{% include "partials/kpi.html" with titulo="Vencido" valor=v pie=p color="!text-red-500" %}{% endwith %}
+    {% with v=cobranza.cobrado_total|pesos %}{% include "partials/kpi.html" with titulo="Cobrado histórico" valor=v color="!text-emerald-500" %}{% endwith %}
+    {% include "partials/kpi.html" with titulo="Comprobantes" valor=facturas|length pie="en el listado" %}
+</div>
+
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <div id="nueva" class="card card-pad h-fit">
+        <h3 class="card-title mb-1">Cargar factura</h3>
+        <p class="text-xs muted mb-4">Se publica al instante en el portal del cliente.</p>
+        <form method="post" enctype="multipart/form-data" class="space-y-3">
+            {% csrf_token %}<input type="hidden" name="accion" value="crear">
+            {% if form.non_field_errors %}<div class="text-xs text-red-500">{{ form.non_field_errors }}</div>{% endif %}
+            <div class="grid grid-cols-2 gap-3">
+                {% for campo in form %}
+                    <div class="{% if campo.name in 'cliente contratacion periodo_facturado link_pago archivo_pdf' %}col-span-2{% endif %}">
+                        <label class="label">{{ campo.label }}</label>{{ campo }}{{ campo.errors }}
+                    </div>
+                {% endfor %}
+            </div>
+            <button class="btn btn-primary w-full">Guardar y publicar</button>
+        </form>
+    </div>
+
+    <div class="card overflow-hidden xl:col-span-2">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <h3 class="card-title">Comprobantes</h3>
+            <div class="flex gap-1 text-xs font-semibold">
+                <a href="?" class="px-3 py-1.5 rounded-lg {% if not filtro %}bg-indigo-600 text-white{% else %}muted{% endif %}">Todas</a>
+                <a href="?estado=pendiente" class="px-3 py-1.5 rounded-lg {% if filtro == 'pendiente' %}bg-indigo-600 text-white{% else %}muted{% endif %}">Pendientes</a>
+                <a href="?estado=vencido" class="px-3 py-1.5 rounded-lg {% if filtro == 'vencido' %}bg-indigo-600 text-white{% else %}muted{% endif %}">Vencidas</a>
+                <a href="?estado=pagado" class="px-3 py-1.5 rounded-lg {% if filtro == 'pagado' %}bg-indigo-600 text-white{% else %}muted{% endif %}">Pagadas</a>
+            </div>
+        </div>
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800"><input type="search" placeholder="Filtrar en la tabla…" class="input" oninput="filtrarTabla(this, 'tablaFacturas')"></div>
+        <div class="overflow-x-auto">
+            <table class="tbl" id="tablaFacturas">
+                <thead><tr><th>Factura</th><th>Cliente</th><th>Monto</th><th>Vence</th><th>Estado</th><th class="text-right">Acción</th></tr></thead>
+                <tbody>
+                    {% for f in facturas %}
+                        <tr>
+                            <td class="font-semibold">{{ f.tipo_comprobante }} {{ f.numero_comprobante }}<span class="block text-xs font-normal muted">{{ f.periodo_facturado }}</span></td>
+                            <td><a href="{% url 'staff:cliente' f.cliente_id %}" class="link">{{ f.cliente.nombre_visible }}</a><span class="block text-xs muted">{{ f.contratacion.servicio|default:"" }}</span></td>
+                            <td class="font-bold">{{ f.monto|pesos }}</td>
+                            <td class="text-xs">{{ f.fecha_vencimiento|date:"d/m/Y" }}</td>
+                            <td>{% estado f.estado_real %}</td>
+                            <td class="text-right whitespace-nowrap">
+                                {% if f.archivo_pdf %}<a href="{% url 'staff:factura_pdf' f.id %}" target="_blank" class="btn btn-ghost btn-sm">PDF</a>{% endif %}
+                                {% if f.estado == 'pendiente' or f.estado == 'vencido' %}
+                                    <form method="post" class="inline-flex gap-1">{% csrf_token %}
+                                        <input type="hidden" name="factura_id" value="{{ f.id }}">
+                                        <select name="metodo_pago" class="input !w-auto !py-1 text-xs">{% for v, l in metodos %}<option value="{{ v }}">{{ l }}</option>{% endfor %}</select>
+                                        <button name="accion" value="pagada" class="btn btn-ok btn-sm">✓</button>
+                                        <button name="accion" value="anular" class="btn btn-danger btn-sm" onclick="return confirm('¿Anular la factura?')">✕</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}<tr><td colspan="6" class="text-center muted py-10">Sin facturas.</td></tr>{% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

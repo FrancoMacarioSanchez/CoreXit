@@ -1,0 +1,29 @@
+{% extends "devpanel/base.html" %}
+{% block title %}{% if instancia %}Editar{% else %}Nuevo{% endif %} tenant | Dev Console{% endblock %}
+{% block header_title %}{% if instancia %}Editar {{ instancia.schema_name }}{% else %}Nuevo tenant{% endif %}{% endblock %}
+
+{% block content %}
+<div class="card card-pad max-w-3xl">
+    <p class="text-sm muted mb-6">
+        {% if instancia %}Cambiar el schema o el dominio acá <strong>no</strong> los cambia en el SaaS: solo actualiza el registro del Hub.
+        {% else %}Usalo para registrar un tenant que ya existe en el SaaS o para crear uno nuevo. Lo normal es que se cree solo al <em>activar</em> una contratación desde el legajo del cliente.{% endif %}
+    </p>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="text-sm text-red-500">{{ form.non_field_errors }}</div>{% endif %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for campo in form %}
+                {% if campo.name == 'aprovisionar_ahora' %}
+                    {% if not instancia %}<label class="sm:col-span-2 flex items-center gap-2 text-sm">{{ campo }} {{ campo.label }}</label>{% endif %}
+                {% else %}
+                    <div><label class="label">{{ campo.label }}</label>{{ campo }}{{ campo.errors }}{% if campo.help_text %}<p class="text-[11px] muted mt-1">{{ campo.help_text }}</p>{% endif %}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-primary">Guardar</button>
+            <a href="{% if instancia %}{% url 'devpanel:tenant' instancia.id %}{% else %}{% url 'devpanel:inicio' %}{% endif %}" class="btn btn-ghost">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

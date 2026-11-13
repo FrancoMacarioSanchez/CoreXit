@@ -1,0 +1,7 @@
+<a href="{{ href }}" class="nav-link {% if seccion == clave %}activo{% endif %}">
+    <span class="flex items-center gap-3">
+        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ icon }}"/></svg>
+        {{ label }}
+    </span>
+    {% if contador %}<span class="px-2 py-0.5 text-[11px] font-bold rounded-full {% if seccion == clave %}bg-white/20{% else %}bg-amber-500/15 text-amber-500{% endif %}">{{ contador }}</span>{% endif %}
+</a>

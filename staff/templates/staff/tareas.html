@@ -1,0 +1,41 @@
+{% extends "staff/base.html" %}
+{% load corex %}
+{% block title %}Tareas | CoreX Staff{% endblock %}
+{% block header_title %}Tareas internas y aprovisionamientos{% endblock %}
+{% block header_actions %}<a href="?{% if not request.GET.mias %}mias=1{% endif %}" class="btn btn-ghost btn-sm">{% if request.GET.mias %}Ver todas{% else %}Solo las mías{% endif %}</a>{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+    <form method="post" class="card card-pad h-fit space-y-3">
+        {% csrf_token %}
+        <h3 class="card-title">Nueva tarea</h3>
+        {% for campo in form %}<div><label class="label">{{ campo.label }}</label>{{ campo }}{{ campo.errors }}</div>{% endfor %}
+        <button class="btn btn-primary w-full">Crear</button>
+    </form>
+    <div class="xl:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {% for clave, titulo, items in columnas %}
+            <div class="rounded-2xl bg-slate-100/70 dark:bg-slate-900/50 p-3 space-y-3">
+                <h3 class="px-1 text-xs font-bold uppercase tracking-wider muted">{{ titulo }} <span class="ml-1">{{ items|length }}</span></h3>
+                {% for t in items %}
+                    <div class="card p-4 space-y-2">
+                        <div class="flex justify-between gap-2">
+                            <span class="text-[10px] font-mono muted">#{{ t.id }}</span>{% estado t.prioridad %}
+                        </div>
+                        <a href="{% url 'staff:ticket' t.id %}" class="block text-sm font-semibold hover:text-indigo-500">{{ t.asunto }}</a>
+                        <p class="text-[11px] muted">
+                            {% if t.tenant %}{{ t.tenant.servicio }} · {{ t.tenant.schema_name }}<br>{% endif %}
+                            {% if t.asignado_a %}{% firstof t.asignado_a.get_full_name t.asignado_a.username %}{% else %}Sin asignar{% endif %} · {{ t.created_at|date:"d/m" }}
+                        </p>
+                        <form method="post" class="flex gap-1 pt-1">
+                            {% csrf_token %}<input type="hidden" name="accion" value="mover"><input type="hidden" name="ticket_id" value="{{ t.id }}">
+                            {% if clave != 'abierto' %}<button name="estado" value="abierto" class="btn btn-ghost btn-sm">← Pendiente</button>{% endif %}
+                            {% if clave != 'en_proceso' %}<button name="estado" value="en_proceso" class="btn btn-ghost btn-sm">En curso</button>{% endif %}
+                            {% if clave != 'resuelto' %}<button name="estado" value="resuelto" class="btn btn-ok btn-sm">Hecho ✓</button>{% endif %}
+                        </form>
+                    </div>
+                {% empty %}<p class="text-xs muted text-center py-6">Vacío</p>{% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "staff/base.html" %}
+{% load corex %}
+{% block title %}Dashboard | CoreX Staff{% endblock %}
+{% block header_title %}Panel ejecutivo{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+    {% with v=kpis.mrr|pesos a=kpis.arr|pesos %}{% include "partials/kpi.html" with titulo="MRR" valor=v color="!text-emerald-500" pie="ARR "|add:a %}{% endwith %}
+    {% with p=kpis.clientes_activos|stringformat:"s"|add:" con servicio activo" %}{% include "partials/kpi.html" with titulo="Clientes" valor=kpis.clientes pie=p %}{% endwith %}
+    {% with v=kpis.pendiente_monto|pesos p=kpis.vencido_count|stringformat:"s"|add:" vencidas" %}{% include "partials/kpi.html" with titulo="Por cobrar" valor=v color="!text-amber-500" pie=p %}{% endwith %}
+    {% with p=kpis.pendientes_pago|stringformat:"s"|add:" esperando pago" %}{% include "partials/kpi.html" with titulo="Suscripciones activas" valor=kpis.contrataciones_activas pie=p %}{% endwith %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card card-pad lg:col-span-2">
+        <h3 class="card-title mb-4">Facturado vs. cobrado (12 meses)</h3>
+        <div class="h-72"><canvas id="chartIngresos"></canvas></div>
+    </div>
+    <div class="card card-pad">
+        <h3 class="card-title mb-4">Suscripciones activas por SaaS</h3>
+        <div class="h-56"><canvas id="chartServicios"></canvas></div>
+        {% if not chart_servicios.data %}<p class="text-sm muted text-center -mt-32">Sin suscripciones activas.</p>{% endif %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between"><h3 class="card-title">Renuevan en los próximos 15 días</h3></div>
+        <table class="tbl"><tbody>
+            {% for c in por_vencer %}
+                <tr>
+                    <td><a href="{% url 'staff:cliente' c.cliente_id %}" class="font-semibold link">{{ c.cliente.nombre_visible }}</a><span class="block text-xs muted">{{ c.servicio }} · {{ c.plan.nombre }}</span></td>
+                    <td class="text-right text-xs">{{ c.fecha_vencimiento|date:"d/m" }} <span class="muted">({{ c.dias_para_vencer }} d)</span></td>
+                </tr>
+            {% empty %}<tr><td class="muted text-center py-6">Nada por renovar.</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800"><h3 class="card-title">Esperando pago para activar</h3></div>
+        <table class="tbl"><tbody>
+            {% for c in pendientes %}
+                <tr>
+                    <td><a href="{% url 'staff:cliente' c.cliente_id %}" class="font-semibold link">{{ c.cliente.nombre_visible }}</a><span class="block text-xs muted">{{ c.servicio }} · {{ c.plan.nombre }} · {{ c.get_frecuencia_pago_display }}</span></td>
+                    <td class="text-right text-xs muted">desde {{ c.fecha_inicio|date:"d/m" }}</td>
+                </tr>
+            {% empty %}<tr><td class="muted text-center py-6">No hay altas pendientes.</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between"><h3 class="card-title">Soporte sin resolver</h3><a href="{% url 'staff:soporte' %}" class="text-xs link">Ver todo →</a></div>
+        <table class="tbl"><tbody>
+            {% for t in ultimos_tickets %}
+                <tr>
+                    <td><a href="{% url 'staff:ticket' t.id %}" class="font-semibold link">#{{ t.id }} {{ t.asunto|truncatechars:50 }}</a><span class="block text-xs muted">{{ t.cliente.nombre_visible }} · {{ t.created_at|timesince }}</span></td>
+                    <td class="text-right">{% estado t.prioridad %}</td>
+                </tr>
+            {% empty %}<tr><td class="muted text-center py-6">Bandeja vacía 🎉</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between"><h3 class="card-title">Sistemas sin aprovisionar o con error</h3>{% if rol_dev %}<a href="{% url 'devpanel:inicio' %}" class="text-xs link">Panel dev →</a>{% endif %}</div>
+        <table class="tbl"><tbody>
+            {% for t in tenants_problema %}
+                <tr>
+                    <td>{% if rol_dev %}<a href="{% url 'devpanel:tenant' t.id %}" class="font-semibold link">{{ t.nombre }}</a>{% else %}<span class="font-semibold">{{ t.nombre }}</span>{% endif %}<span class="block text-xs muted">{{ t.servicio }} · {{ t.schema_name }}</span></td>
+                    <td class="text-right">{% estado t.estado %}</td>
+                </tr>
+            {% empty %}<tr><td class="muted text-center py-6">Todos los sistemas están operativos.</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+</div>
+{{ chart_ingresos|json_script:"data-ingresos" }}{{ chart_servicios|json_script:"data-servicios" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const ing = leerJSON('data-ingresos');
+    new Chart(document.getElementById('chartIngresos'), {
+        type: 'bar',
+        data: { labels: ing.labels, datasets: [
+            { label: 'Facturado', data: ing.facturado, backgroundColor: 'rgba(99,102,241,.35)', borderRadius: 6 },
+            { label: 'Cobrado', data: ing.cobrado, backgroundColor: '#10b981', borderRadius: 6 },
+        ]},
+        options: { plugins: { tooltip: { callbacks: { label: c => c.dataset.label + ': $ ' + fmtNum(c.raw) } } },
+                   scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }
+    });
+    const sv = leerJSON('data-servicios');
+    if (sv.data.length) new Chart(document.getElementById('chartServicios'), {
+        type: 'doughnut',
+        data: { labels: sv.labels, datasets: [{ data: sv.data, backgroundColor: sv.colores, borderWidth: 0 }] },
+        options: { cutout: '65%', plugins: { legend: { position: 'bottom' } } }
+    });
+</script>
+{% endblock %}

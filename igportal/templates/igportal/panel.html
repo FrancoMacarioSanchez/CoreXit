@@ -1,0 +1,94 @@
+{% extends "staff/base.html" %}
+{% block title %}Instagram | CoreX{% endblock %}
+{% block header_title %}Instagram{% endblock %}
+{% block header_actions %}
+{% if config.conectado %}<a href="?refrescar=1" class="btn btn-ghost btn-sm">Actualizar</a>{% endif %}
+<a href="{% url 'igportal:nueva' %}" class="btn btn-primary btn-sm">Nueva publicación</a>
+{% endblock %}
+
+{% block content %}
+{% include "igportal/_tabs.html" with activa="panel" %}
+
+{% if not config.conectado %}
+<div class="card card-pad text-center py-14">
+    <div class="w-14 h-14 mx-auto rounded-2xl bg-pink-500/10 text-pink-500 flex items-center justify-center mb-4 text-2xl">📸</div>
+    <h2 class="card-title text-xl">Conectá la cuenta de Instagram de CoreX</h2>
+    <p class="muted mt-2 max-w-md mx-auto">Con la conexión podés ver métricas, publicar fotos, reels e historias (también programadas) y responder comentarios desde el Hub.</p>
+    {% if puede_conectar %}<a href="{% url 'igportal:conexion' %}" class="btn btn-primary mt-6">Conectar cuenta</a>
+    {% else %}<p class="text-sm muted mt-6">Pedile a un desarrollador que la conecte desde «Conexión».</p>{% endif %}
+</div>
+{% else %}
+    {% if config.por_vencer %}
+    <div class="p-4 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400 text-sm font-medium">
+        El token de Instagram vence en {{ config.dias_para_vencer }} día{{ config.dias_para_vencer|pluralize }}. Renovalo desde <a class="underline" href="{% url 'igportal:conexion' %}">Conexión</a> para no perder el acceso.
+    </div>
+    {% endif %}
+    {% for a in datos.avisos %}
+    <div class="p-4 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400 text-sm">{{ a }}</div>
+    {% endfor %}
+
+    {% if datos.perfil %}
+    <div class="card card-pad flex flex-wrap items-center gap-5">
+        {% if datos.perfil.profile_picture_url %}<img src="{{ datos.perfil.profile_picture_url }}" alt="" class="w-16 h-16 rounded-full object-cover border border-slate-200 dark:border-slate-700" referrerpolicy="no-referrer">{% endif %}
+        <div class="min-w-0 flex-1">
+            <p class="text-lg font-bold">{{ datos.perfil.name|default:datos.perfil.username }}</p>
+            <a class="link text-sm" href="https://instagram.com/{{ datos.perfil.username }}" target="_blank" rel="noopener">@{{ datos.perfil.username }}</a>
+            <span class="badge badge-mute ml-2">{{ datos.perfil.account_type }}</span>
+        </div>
+        <div class="grid grid-cols-3 gap-6 text-center">
+            <div><p class="text-2xl font-black">{{ datos.perfil.followers_count|default:0 }}</p><p class="label !mb-0">Seguidores</p></div>
+            <div><p class="text-2xl font-black">{{ datos.perfil.follows_count|default:0 }}</p><p class="label !mb-0">Siguiendo</p></div>
+            <div><p class="text-2xl font-black">{{ datos.perfil.media_count|default:0 }}</p><p class="label !mb-0">Publicaciones</p></div>
+        </div>
+    </div>
+
+    {% if datos.metricas or datos.alcance %}
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for nombre, valor in datos.metricas.items %}
+        <div class="card card-pad"><p class="label">{{ nombre }} · 7 días</p><p class="kpi-valor">{{ valor|default_if_none:"—" }}</p></div>
+        {% endfor %}
+    </div>
+    {% if datos.alcance %}
+    <div class="card card-pad"><h3 class="card-title mb-4">Alcance diario · últimos 7 días</h3><div class="h-56"><canvas id="ch-alcance"></canvas></div></div>
+    {% endif %}
+    {% endif %}
+
+    <div>
+        <h3 class="card-title mb-3">Últimas publicaciones</h3>
+        {% if datos.medios %}
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for m in datos.medios %}
+            <div class="card overflow-hidden flex flex-col">
+                <a href="{{ m.permalink }}" target="_blank" rel="noopener" class="block aspect-square bg-slate-100 dark:bg-slate-900">
+                    {% if m.imagen %}<img src="{{ m.imagen }}" alt="" loading="lazy" referrerpolicy="no-referrer" class="w-full h-full object-cover">{% endif %}
+                </a>
+                <div class="p-3 flex-1 flex flex-col gap-2">
+                    <p class="text-xs muted line-clamp-2">{{ m.caption|default:"Sin texto" }}</p>
+                    <div class="mt-auto flex items-center justify-between text-xs">
+                        <span class="muted">♥ {{ m.like_count|default:0 }} · 💬 {{ m.comments_count|default:0 }}</span>
+                        <a class="link" href="{% url 'igportal:comentarios' m.id %}">Comentarios</a>
+                    </div>
+                    <span class="text-[11px] muted">{% if m.fecha %}{{ m.fecha|date:"d/m/Y H:i" }}{% endif %} · {{ m.media_type }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}<p class="muted text-sm">Todavía no hay publicaciones.</p>{% endif %}
+    </div>
+    {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if datos.alcance %}
+{{ datos.alcance|json_script:"alcance-data" }}
+<script>
+(function () {
+    const a = leerJSON('alcance-data');
+    new Chart(document.getElementById('ch-alcance'), { type: 'bar',
+        data: { labels: a.map(x => x.dia), datasets: [{ label: 'Cuentas alcanzadas', data: a.map(x => x.valor), backgroundColor: PALETA[5], borderRadius: 4 }] },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } } });
+})();
+</script>
+{% endif %}
+{% endblock %}

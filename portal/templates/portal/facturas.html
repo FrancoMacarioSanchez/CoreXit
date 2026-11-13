@@ -1,0 +1,69 @@
+{% extends "portal/base.html" %}
+{% load corex %}
+{% block title %}Facturas | CoreX{% endblock %}
+{% block header_title %}Facturas y pagos{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+    {% with v=cobranza.pendiente_monto|pesos %}{% include "partials/kpi.html" with titulo="Pendiente de pago" valor=v pie=cobranza.pendiente_count|stringformat:"s"|add:" comprobantes" %}{% endwith %}
+    {% with v=cobranza.vencido_monto|pesos %}{% if cobranza.vencido_count %}{% include "partials/kpi.html" with titulo="Vencido" valor=v color="!text-red-500" pie="Regularizalo para evitar la suspensión" %}{% else %}{% include "partials/kpi.html" with titulo="Vencido" valor=v pie="Estás al día 🎉" %}{% endif %}{% endwith %}
+    {% with v=cobranza.cobrado_total|pesos %}{% include "partials/kpi.html" with titulo="Total abonado" valor=v color="!text-emerald-500" pie="Historial completo" %}{% endwith %}
+</div>
+
+<div class="card card-pad">
+    <h3 class="card-title mb-4">Evolución de facturación</h3>
+    <div class="h-56"><canvas id="chartPagos"></canvas></div>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex flex-wrap gap-2 items-center justify-between">
+        <h3 class="card-title">Comprobantes</h3>
+        <div class="flex gap-1 text-xs font-semibold">
+            <a href="?" class="px-3 py-1.5 rounded-lg {% if not filtro %}bg-indigo-600 text-white{% else %}muted{% endif %}">Todas</a>
+            <a href="?estado=pendiente" class="px-3 py-1.5 rounded-lg {% if filtro == 'pendiente' %}bg-indigo-600 text-white{% else %}muted{% endif %}">Pendientes</a>
+            <a href="?estado=pagado" class="px-3 py-1.5 rounded-lg {% if filtro == 'pagado' %}bg-indigo-600 text-white{% else %}muted{% endif %}">Pagadas</a>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="tbl">
+            <thead><tr><th>Comprobante</th><th>Período / Servicio</th><th>Emisión</th><th>Vencimiento</th><th>Importe</th><th>Estado</th><th class="text-right">Acciones</th></tr></thead>
+            <tbody>
+                {% for f in facturas %}
+                    <tr>
+                        <td class="font-bold">
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-indigo-500/10 text-indigo-500 font-black text-xs mr-1">{{ f.tipo_comprobante }}</span>{{ f.numero_comprobante }}
+                            {% if f.cae %}<span class="block text-[10px] font-normal muted">CAE {{ f.cae }}</span>{% endif %}
+                        </td>
+                        <td>{{ f.periodo_facturado }}{% if f.contratacion %}<a href="{% url 'portal:servicio' f.contratacion_id %}" class="block text-xs link">{{ f.contratacion.servicio }} · {{ f.contratacion.plan.nombre }}</a>{% endif %}</td>
+                        <td class="muted">{{ f.fecha_emision|date:"d/m/Y" }}</td>
+                        <td class="muted">{{ f.fecha_vencimiento|date:"d/m/Y" }}</td>
+                        <td class="font-bold">{{ f.monto|pesos:2 }}</td>
+                        <td>{% estado f.estado_real %}{% if f.fecha_pago %}<span class="block text-[10px] muted mt-1">{{ f.fecha_pago|date:"d/m/Y" }} · {{ f.get_metodo_pago_display|default:"—" }}</span>{% endif %}</td>
+                        <td class="text-right whitespace-nowrap space-x-1">
+                            {% if f.archivo_pdf %}<a href="{% url 'portal:factura_pdf' f.id %}" target="_blank" class="btn btn-ghost btn-sm">PDF</a>{% endif %}
+                            {% if f.estado != 'pagado' and f.link_pago %}<a href="{{ f.link_pago }}" target="_blank" rel="noopener" class="btn btn-mp btn-sm">Pagar</a>{% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="7" class="text-center muted py-10">No hay comprobantes.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{ chart_pagos|json_script:"data-pagos" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const d = leerJSON('data-pagos');
+    new Chart(document.getElementById('chartPagos'), {
+        type: 'line',
+        data: { labels: d.labels, datasets: [
+            { label: 'Facturado', data: d.facturado, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,.1)', fill: true, tension: .35 },
+            { label: 'Pagado', data: d.cobrado, borderColor: '#10b981', tension: .35 },
+        ]},
+        options: { scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }
+    });
+</script>
+{% endblock %}

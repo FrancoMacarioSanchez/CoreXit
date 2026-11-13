@@ -1,0 +1,844 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>GestionAR — Caja, stock, tienda web y facturación</title>
+    <meta name="description" content="GestionAR junta la caja, el stock, la tienda web y la facturación electrónica ARCA de tu comercio en un solo sistema. Elegí entre los planes Starter, Ecommerce y Empresa.">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    },
+                    colors: {
+                        background: '#030303',
+                        surface: '#0a0a0a',
+                        surface2: '#121212',
+                        border: 'rgba(255, 255, 255, 0.08)',
+                        primary: '#6366f1',
+                        glow: '#8b5cf6'
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite alternate',
+                        'blob-reverse': 'blob-reverse 12s infinite alternate',
+                        'shine-slow': 'shineSlow 8s linear infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '100%': { transform: 'translate(30px, -50px) scale(1.1)' }
+                        },
+                        'blob-reverse': {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '100%': { transform: 'translate(-30px, 50px) scale(1.1)' }
+                        },
+                        shineSlow: {
+                            '0%': { backgroundPosition: '200% center' },
+                            '100%': { backgroundPosition: '-200% center' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        html { scroll-behavior: smooth; }
+        
+        body {
+            background-color: #030303;
+            color: #ededed;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+        }
+
+        /* Animaciones de Fondo */
+        @keyframes gridPan {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 40px; }
+        }
+
+        .grid-pattern {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+            animation: gridPan 10s linear infinite;
+        }
+
+        @keyframes meteor {
+            0% { transform: rotate(215deg) translateX(0); opacity: 1; }
+            70% { opacity: 1; }
+            100% { transform: rotate(215deg) translateX(-1000px); opacity: 0; }
+        }
+        .meteor {
+            position: absolute;
+            width: 150px;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(99,102,241,1) 0%, rgba(0,0,0,0) 100%);
+            animation: meteor 6s linear infinite;
+            opacity: 0;
+            box-shadow: 0 0 10px 1px rgba(99,102,241,0.5);
+            pointer-events: none;
+        }
+        .meteor-1 { top: 10%; left: 70%; animation-delay: 0s; animation-duration: 8s; }
+        .meteor-2 { top: 30%; left: 90%; animation-delay: 2s; animation-duration: 6s; }
+        .meteor-3 { top: 60%; left: 80%; animation-delay: 4s; animation-duration: 7s; }
+        .meteor-4 { top: 15%; left: 110%; animation-delay: 6s; animation-duration: 5s; }
+
+        /* Glassmorphism Panels */
+        .glass-card {
+            background: linear-gradient(145deg, rgba(20,20,20,0.8) 0%, rgba(10,10,10,0.9) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(255,255,255,0.15);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+            transform: translateY(-4px);
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(to right, #fff, #a5a5a5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .text-gradient-primary {
+            background: linear-gradient(to right, #818cf8, #c084fc, #818cf8);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shineSlow 5s linear infinite;
+        }
+
+        /* Reveal al hacer Scroll */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px) scale(0.98);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Entrada inicial (Slide Up) */
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .animate-hero > * {
+            opacity: 0;
+            animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-hero > *:nth-child(1) { animation-delay: 0.1s; }
+        .animate-hero > *:nth-child(2) { animation-delay: 0.2s; }
+        .animate-hero > *:nth-child(3) { animation-delay: 0.3s; }
+        .animate-hero > *:nth-child(4) { animation-delay: 0.4s; }
+        .animate-hero > *:nth-child(5) { animation-delay: 0.5s; }
+        .animate-hero > *:nth-child(6) { animation-delay: 0.6s; }
+
+        /* Flotación Suave */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .animate-float-delayed { animation: float 6s ease-in-out 3s infinite; }
+
+        /* Gráficos y Barras de progreso */
+        .bar-grow {
+            transform-origin: bottom;
+            transform: scaleY(0);
+            transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .bar-grow.visible { transform: scaleY(1); }
+        
+        .progress-bar-fill {
+            width: 0%;
+            transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .progress-bar-fill.visible { width: var(--w, 42.7%); }
+
+        /* Botones con Glow */
+        .glow-button {
+            position: relative;
+            overflow: hidden;
+        }
+        .glow-button::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(45deg) translateY(-100%);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glow-button:hover::after { transform: rotate(45deg) translateY(100%); }
+        
+        .glow-border-button { position: relative; }
+        .glow-border-button::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, #6366f1, #8b5cf6, #3b82f6);
+            z-index: -1;
+            border-radius: inherit;
+            filter: blur(12px);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .glow-border-button:hover::before { opacity: 0.7; }
+
+        /* FAQ */
+        .faq-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+            opacity: 0;
+        }
+        .faq-item.active .faq-content {
+            max-height: 300px;
+            opacity: 1;
+        }
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+            color: #818cf8;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
+
+<!-- Orbs Background & Meteors -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/10 blur-[120px] animate-blob"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[120px] animate-blob-reverse"></div>
+    <div class="absolute inset-0 grid-pattern"></div>
+    <div class="meteor meteor-1"></div>
+    <div class="meteor meteor-2"></div>
+    <div class="meteor meteor-3"></div>
+    <div class="meteor meteor-4"></div>
+</div>
+
+<!-- NAVBAR -->
+<header id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-5 py-4">
+        <nav class="glass-card !transition-none rounded-2xl px-5 py-3 flex items-center justify-between hover:translate-y-0">
+            <a href="{% url 'landing-home' %}" class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.4)]">
+                    <span class="text-white font-black text-lg leading-none">G</span>
+                </div>
+                <div class="font-bold text-white tracking-tight">Gestion<span class="text-indigo-400">AR</span></div>
+            </a>
+
+            <div class="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-400">
+                <a href="#funciones" class="hover:text-white transition-colors hover:scale-105 transform">Funciones</a>
+                <a href="#tu-comercio" class="hover:text-white transition-colors hover:scale-105 transform">Tu comercio</a>
+                <a href="#como-funciona" class="hover:text-white transition-colors hover:scale-105 transform">Cómo funciona</a>
+                <a href="#planes" class="hover:text-white transition-colors hover:scale-105 transform">Planes</a>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <a href="{% url 'login' %}" class="hidden sm:block text-sm font-medium text-neutral-400 hover:text-white transition-colors">Ingresar</a>
+                <a href="#planes" class="glow-button relative inline-flex items-center justify-center px-5 py-2 text-sm font-medium text-white transition-all bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-white/20">
+                    <span>Empezar</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<!-- HERO -->
+<section class="relative pt-40 pb-20 overflow-hidden min-h-[90vh] flex items-center">
+    <div class="max-w-7xl mx-auto px-5 relative z-10 w-full">
+        <div class="text-center max-w-4xl mx-auto animate-hero">
+
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-medium mb-8 hover:bg-indigo-500/20 transition-colors cursor-default">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                </span>
+                Caja, stock, tienda web y facturación ARCA
+            </div>
+
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] text-gradient pb-2">
+                Vendé en el local. <br>
+                <span class="text-gradient-primary">Vendé online. Facturá.</span>
+            </h1>
+
+            <p class="mt-6 text-lg sm:text-xl text-neutral-400 max-w-2xl mx-auto">
+                El sistema para comercios que junta tu caja, tu stock y tu tienda web en un solo lugar, y emite cada comprobante con ARCA sin que tengas que pensarlo.
+            </p>
+
+            <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="#planes" class="glow-border-button glow-button inline-flex justify-center items-center gap-2 rounded-xl bg-white text-black px-8 py-3.5 text-sm font-bold transition-transform w-full sm:w-auto">
+                    Ver planes
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-6-6 6 6-6 6"/></svg>
+                </a>
+                <a href="#como-funciona" class="inline-flex justify-center items-center gap-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white px-8 py-3.5 text-sm font-semibold transition-colors w-full sm:w-auto">
+                    Cómo funciona
+                </a>
+            </div>
+
+            <div class="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-neutral-500">
+                <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Nada para instalar</span>
+                <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Tu propia dirección web</span>
+                <span class="flex items-center gap-1.5"><svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Cancelá cuando quieras</span>
+            </div>
+        </div>
+
+        <!-- Mockup de la caja -->
+        <div class="mt-20 relative mx-auto max-w-5xl animate-hero" style="animation-delay: 0.8s;">
+            <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/20 to-transparent blur-3xl rounded-[3rem]"></div>
+            <div class="glass-card hover:translate-y-0 hover:shadow-2xl rounded-2xl p-2 md:p-4 relative overflow-hidden animate-float" aria-hidden="true">
+                <div class="flex items-center gap-2 mb-4 px-2 pt-2">
+                    <div class="w-3 h-3 rounded-full bg-neutral-700 hover:bg-red-500 transition-colors"></div>
+                    <div class="w-3 h-3 rounded-full bg-neutral-700 hover:bg-yellow-500 transition-colors"></div>
+                    <div class="w-3 h-3 rounded-full bg-neutral-700 hover:bg-green-500 transition-colors"></div>
+                    <div class="ml-3 hidden sm:block text-[11px] text-neutral-500 bg-white/5 border border-white/5 rounded-md px-3 py-1">gesmikiosco.corexit.tech / Caja</div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="md:col-span-3 rounded-xl bg-white/5 border border-white/5 p-4">
+                        <div class="flex gap-2 mb-4 text-[11px] font-medium">
+                            <span class="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Bebidas</span>
+                            <span class="px-3 py-1 rounded-full bg-white/5 text-neutral-400">Almacén</span>
+                            <span class="px-3 py-1 rounded-full bg-white/5 text-neutral-400">Golosinas</span>
+                            <span class="hidden sm:inline px-3 py-1 rounded-full bg-white/5 text-neutral-400">Limpieza</span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div class="rounded-xl bg-white/5 border border-white/5 p-3 hover:border-indigo-400/40 transition-colors"><div class="text-xs text-neutral-300">Gaseosa 1,5 L</div><div class="mt-3 text-sm font-bold text-white">$ 2.400</div></div>
+                            <div class="rounded-xl bg-white/5 border border-white/5 p-3 hover:border-indigo-400/40 transition-colors"><div class="text-xs text-neutral-300">Agua 500 ml</div><div class="mt-3 text-sm font-bold text-white">$ 900</div></div>
+                            <div class="rounded-xl bg-indigo-500/15 border border-indigo-500/30 p-3"><div class="text-xs text-indigo-200">Cerveza lata</div><div class="mt-3 text-sm font-bold text-white">$ 1.850</div></div>
+                            <div class="rounded-xl bg-white/5 border border-white/5 p-3 hover:border-indigo-400/40 transition-colors"><div class="text-xs text-neutral-300">Jugo 1 L</div><div class="mt-3 text-sm font-bold text-white">$ 1.600</div></div>
+                            <div class="rounded-xl bg-white/5 border border-white/5 p-3 hover:border-indigo-400/40 transition-colors"><div class="text-xs text-neutral-300">Energizante</div><div class="mt-3 text-sm font-bold text-white">$ 2.900</div></div>
+                            <div class="rounded-xl bg-white/5 border border-white/5 p-3 hover:border-indigo-400/40 transition-colors"><div class="text-xs text-neutral-300">Soda 2 L</div><div class="mt-3 text-sm font-bold text-white">$ 1.100</div></div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 rounded-xl bg-[#0c0c12] border border-white/5 p-4 flex flex-col">
+                        <div class="text-[11px] uppercase tracking-widest text-neutral-500 mb-3">Venta actual</div>
+                        <div class="space-y-2 text-xs text-neutral-300 flex-grow">
+                            <div class="flex justify-between"><span>2 × Cerveza lata</span><span>$ 3.700</span></div>
+                            <div class="flex justify-between"><span>1 × Gaseosa 1,5 L</span><span>$ 2.400</span></div>
+                            <div class="flex justify-between"><span>3 × Agua 500 ml</span><span>$ 2.700</span></div>
+                            <div class="flex justify-between text-emerald-400"><span>Promo 2×1 aguas</span><span>− $ 900</span></div>
+                        </div>
+                        <div class="border-t border-white/10 mt-4 pt-3 flex justify-between items-end">
+                            <span class="text-xs text-neutral-500">Total</span><span class="text-2xl font-black text-white">$ 7.900</span>
+                        </div>
+                        <div class="mt-4 rounded-xl bg-indigo-600 text-white text-center text-sm font-bold py-3 shadow-[0_0_20px_rgba(99,102,241,0.4)]">Cobrar y facturar</div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-[11px] text-neutral-600 mt-3">Imagen ilustrativa con datos de ejemplo.</p>
+        </div>
+    </div>
+</section>
+
+<!-- TRUST -->
+<section class="border-y border-white/5 bg-white/[0.02] py-8">
+    <div class="max-w-7xl mx-auto px-5">
+        <div class="flex flex-wrap justify-center items-center gap-x-8 gap-y-3 md:gap-x-14 text-sm font-semibold text-neutral-500 uppercase tracking-widest reveal">
+            <span class="hover:text-white transition-colors">Caja táctil</span>
+            <span class="hidden md:block w-1 h-1 rounded-full bg-neutral-700"></span>
+            <span class="hover:text-white transition-colors">Stock en vivo</span>
+            <span class="hidden md:block w-1 h-1 rounded-full bg-neutral-700"></span>
+            <span class="hover:text-white transition-colors">Facturación ARCA</span>
+            <span class="hidden md:block w-1 h-1 rounded-full bg-neutral-700"></span>
+            <span class="hover:text-white transition-colors">Tienda web</span>
+        </div>
+    </div>
+</section>
+
+<!-- BENTO -->
+<section id="funciones" class="py-32 relative">
+    <div class="max-w-7xl mx-auto px-5">
+        <div class="mb-16 reveal">
+            <h2 class="text-3xl md:text-5xl font-bold tracking-tight text-white mb-4">Todo tu comercio. <br><span class="text-neutral-500">En una sola pantalla.</span></h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:auto-rows-[250px]">
+            <div class="glass-card rounded-3xl p-8 flex flex-col justify-between md:col-span-2 group reveal">
+                <div class="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 mb-4 group-hover:bg-indigo-500/20 transition-all duration-500 animate-float">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h2m4 0h4M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">Caja pensada para el mostrador</h3>
+                    <p class="text-neutral-400 text-sm md:text-base">Botones grandes por secciones, lector de código de barras, medios de pago a tu medida y ticket para imprimir. Cobrás en segundos, también desde una pantalla táctil.</p>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-8 flex flex-col justify-between group reveal" style="transition-delay: 0.1s;">
+                <div class="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center border border-purple-500/20 mb-4 group-hover:bg-purple-500/20 transition-all duration-500 animate-float-delayed">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M12 13v8"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">Stock siempre al día</h3>
+                    <p class="text-neutral-400 text-sm">Cada venta descuenta stock. Cargá una factura de proveedor completa de una vez y actualizá precios en masa.</p>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-8 flex flex-col justify-between group reveal" style="transition-delay: 0.2s;">
+                <div class="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 mb-4 group-hover:bg-emerald-500/20 transition-all duration-500 animate-float">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M9 14.5l2 2 4-4M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-emerald-300 transition-colors">Facturación ARCA</h3>
+                    <p class="text-neutral-400 text-sm">Los medios de pago facturables emiten su comprobante con CAE y código QR. Los que no, no.</p>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-8 flex flex-col justify-between md:col-span-2 group relative overflow-hidden reveal" style="transition-delay: 0.3s;">
+                <div class="absolute right-0 bottom-0 w-64 h-64 bg-indigo-600/10 blur-[80px] group-hover:bg-indigo-600/20 transition-colors duration-700"></div>
+                <div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 mb-4 group-hover:bg-blue-500/20 transition-all duration-500 relative z-10 animate-float-delayed">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.3 2.3a1 1 0 00.7 1.7H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <div class="relative z-10">
+                    <div class="inline-block mb-2 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[10px] font-bold tracking-wider uppercase">Planes Ecommerce y Empresa</div>
+                    <h3 class="text-2xl font-bold text-white mb-2 group-hover:text-blue-300 transition-colors">Tienda web conectada a tu stock</h3>
+                    <p class="text-neutral-400 text-sm md:text-base">Catálogo online con tu marca, carrito y pedidos que llegan a tu panel. El envío lo coordina tu equipo con el cliente y queda registrado en la venta.</p>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-8 flex flex-col justify-between group reveal">
+                <div class="w-12 h-12 rounded-full bg-pink-500/10 flex items-center justify-center border border-pink-500/20 mb-4 group-hover:bg-pink-500/20 transition-all duration-500 animate-float">
+                    <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5a2 2 0 011.4.6l7 7a2 2 0 010 2.8l-5 5a2 2 0 01-2.8 0l-7-7A2 2 0 015 8V5a2 2 0 012-2z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-pink-300 transition-colors">Promociones</h3>
+                    <p class="text-neutral-400 text-sm">Descuentos y combos que valen en el local y en la tienda online. <span class="text-neutral-500">(Ecommerce y Empresa)</span></p>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-8 flex flex-col justify-between group reveal" style="transition-delay: 0.1s;">
+                <div class="w-12 h-12 rounded-full bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 mb-4 group-hover:bg-cyan-500/20 transition-all duration-500 animate-float-delayed">
+                    <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M8 10h8M8 14h5m8-2a9 9 0 11-4.2-7.6L21 3l-.9 4.2A9 9 0 0121 12z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors">Usuarios, roles y chat</h3>
+                    <p class="text-neutral-400 text-sm">Cada persona ve solo lo que le corresponde. Chat interno entre cajeros y encargados. <span class="text-neutral-500">(Chat: Ecommerce y Empresa)</span></p>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-8 flex flex-col justify-between group reveal" style="transition-delay: 0.2s;">
+                <div class="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center border border-amber-500/20 mb-4 group-hover:bg-amber-500/20 transition-all duration-500 animate-float">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 19V5m0 14h16M8 16v-5m4 5V7m4 9v-8"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-300 transition-colors">Gerencia</h3>
+                    <p class="text-neutral-400 text-sm">Métricas y gráficos de ventas, productos y desempeño, más el registro de quién hizo qué. <span class="text-neutral-500">(Empresa)</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TU COMERCIO -->
+<section id="tu-comercio" class="py-32 border-y border-white/5 relative overflow-hidden bg-[#050505]">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-indigo-600/10 blur-[120px] rounded-[100%] pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-5 relative z-10">
+        <div class="grid lg:grid-cols-2 gap-16 items-center">
+            <div class="reveal">
+                <div class="text-indigo-400 text-sm font-bold tracking-widest uppercase mb-4">Tu propio espacio</div>
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">Tu comercio, <br>tu dirección.</h2>
+                <p class="text-neutral-400 text-lg mb-8">
+                    Cada comercio tiene su propia dirección: <span class="text-white font-semibold">ges<span class="text-indigo-300">tunegocio</span>.corexit.tech</span>. Tu equipo entra desde ahí y los datos de cada comercio están separados de los demás.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs text-neutral-300 hover:bg-white/10 transition-colors cursor-default">Acceso con usuario y rol</span>
+                    <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs text-neutral-300 hover:bg-white/10 transition-colors cursor-default">Datos separados por comercio</span>
+                    <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs text-neutral-300 hover:bg-white/10 transition-colors cursor-default">Modo claro y oscuro</span>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-6 reveal" style="transition-delay: 0.2s;" aria-hidden="true">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-2.5 h-2.5 rounded-full bg-neutral-700"></div><div class="w-2.5 h-2.5 rounded-full bg-neutral-700"></div><div class="w-2.5 h-2.5 rounded-full bg-neutral-700"></div>
+                    <div class="ml-2 flex-1 text-[11px] text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-md px-3 py-1 truncate">🔒 https://gesmikiosco.corexit.tech</div>
+                </div>
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <p class="text-neutral-400 text-sm mb-1">Mi Kiosco</p>
+                        <p class="text-3xl font-bold text-white">$ 184.300</p>
+                        <p class="text-xs text-neutral-500 mt-1">Ventas de hoy · 42 operaciones</p>
+                    </div>
+                    <div class="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-bold rounded-full">Plan Ecommerce</div>
+                </div>
+                <div class="mb-3 flex justify-between text-xs font-medium"><span class="text-neutral-300">Usuarios del plan</span><span class="text-white">4 de 6</span></div>
+                <div class="h-2 w-full bg-white/5 rounded-full overflow-hidden mb-6 relative">
+                    <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.8)] progress-bar-fill js-anim-progress" style="--w: 66%"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 border-t border-white/10 pt-5">
+                    <div class="rounded-xl bg-white/5 border border-white/5 p-3"><p class="text-xl font-bold text-white">3</p><p class="text-[11px] text-neutral-500 uppercase tracking-wider">Pedidos web por confirmar</p></div>
+                    <div class="rounded-xl bg-white/5 border border-white/5 p-3"><p class="text-xl font-bold text-white">1.248</p><p class="text-[11px] text-neutral-500 uppercase tracking-wider">Productos cargados</p></div>
+                </div>
+                <p class="text-[11px] text-neutral-600 mt-4">Datos de ejemplo.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como-funciona" class="py-32">
+    <div class="max-w-7xl mx-auto px-5">
+        <div class="text-center mb-16 reveal">
+            <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Empezá en tres pasos.</h2>
+            <p class="text-neutral-400 text-lg">De la contratación a la primera venta, sin instalar nada.</p>
+        </div>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="glass-card p-8 rounded-3xl text-center reveal group hover:-translate-y-2">
+                <div class="text-5xl font-black text-white/5 mb-4 group-hover:text-indigo-500/20 transition-colors">01</div>
+                <h3 class="text-xl font-bold text-white mb-3">Elegí tu plan</h3>
+                <p class="text-neutral-400 text-sm">Contratás online y creamos tu comercio con su dirección, tu caja y tus medios de pago básicos ya cargados.</p>
+            </div>
+            <div class="glass-card p-8 rounded-3xl text-center relative reveal group hover:-translate-y-2" style="transition-delay: 0.1s;">
+                <div class="absolute inset-0 bg-indigo-500/5 rounded-3xl pointer-events-none group-hover:bg-indigo-500/10 transition-colors"></div>
+                <div class="text-5xl font-black text-white/5 mb-4 group-hover:text-indigo-500/20 transition-colors">02</div>
+                <h3 class="text-xl font-bold text-white mb-3">Cargá tu catálogo</h3>
+                <p class="text-neutral-400 text-sm">Importá tus productos desde una planilla CSV o agregalos a mano, y sumá a tu equipo con su rol.</p>
+            </div>
+            <div class="glass-card p-8 rounded-3xl text-center reveal group hover:-translate-y-2" style="transition-delay: 0.2s;">
+                <div class="text-5xl font-black text-white/5 mb-4 group-hover:text-indigo-500/20 transition-colors">03</div>
+                <h3 class="text-xl font-bold text-white mb-3">Vendé y facturá</h3>
+                <p class="text-neutral-400 text-sm">Cobrá en la caja o recibí pedidos de tu tienda web. Conectá tu punto de venta de ARCA y los comprobantes salen solos.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- PLANES -->
+<section id="planes" class="py-32 relative">
+    <div class="max-w-7xl mx-auto px-5">
+        <div class="text-center mb-16 reveal">
+            <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Un plan para cada comercio.</h2>
+            <p class="text-neutral-400 text-lg mb-8">Empezá con lo básico y subí de plan cuando tu negocio lo pida.</p>
+
+            <div class="inline-flex items-center p-1 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md">
+                <button id="btn-mensual" onclick="setBilling('mensual')" class="px-6 py-2 rounded-lg text-sm font-semibold bg-white/10 text-white shadow-sm transition-all">Mensual</button>
+                <button id="btn-anual" onclick="setBilling('anual')" class="px-6 py-2 rounded-lg text-sm font-semibold text-neutral-400 hover:text-white transition-all">Anual</button>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {% for d in planes %}
+                <div class="glass-card rounded-3xl p-8 flex flex-col reveal group hover:-translate-y-2 {% if d.destacado %}relative border-indigo-500/50 shadow-[0_0_30px_rgba(99,102,241,0.15)] bg-[#0a0b14] lg:-translate-y-4{% endif %}">
+                    {% if d.destacado %}
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-3 py-1 bg-indigo-500 text-white text-[10px] font-bold tracking-wider rounded-full uppercase shadow-[0_0_15px_rgba(99,102,241,0.5)] whitespace-nowrap">Más elegido</div>
+                    {% endif %}
+
+                    <div class="mb-6 {% if d.destacado %}mt-2{% endif %}">
+                        <p class="{% if d.destacado %}text-indigo-400{% else %}text-purple-400{% endif %} text-sm font-bold mb-2">GestionAR</p>
+                        <h3 class="text-2xl font-bold text-white">{{ d.plan.nombre }}</h3>
+                    </div>
+
+                    <div class="mb-8 transform transition-transform group-hover:scale-105 origin-left">
+                        {% if d.con_precio %}
+                        <p class="text-4xl font-black text-white price" data-mensual="{{ d.plan.precio_mensual|floatformat:0 }}" data-anual="{{ d.plan.precio_anual|floatformat:0 }}">${{ d.plan.precio_mensual|floatformat:0 }}</p>
+                        <p class="text-xs text-neutral-500 mt-1 label-periodo">por mes</p>
+                        {% else %}
+                        <p class="text-3xl font-black text-white">Próximamente</p>
+                        <p class="text-xs text-neutral-500 mt-1">Precio a confirmar</p>
+                        {% endif %}
+                    </div>
+
+                    <ul class="space-y-3 text-sm text-neutral-300 mb-8 flex-grow">
+                        {% for linea in d.lineas %}
+                        <li class="flex items-start gap-3">
+                            <svg class="w-4 h-4 mt-0.5 shrink-0 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span>{{ linea }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    {% if d.con_precio %}
+                    <a href="{% url 'registro_plan' d.plan.id 'mensual' %}" data-plan-id="{{ d.plan.id }}" class="btn-registro-plan {% if d.destacado %}glow-border-button glow-button bg-indigo-600 hover:bg-indigo-500{% else %}border border-white/10 bg-white/5 hover:bg-white/10{% endif %} block w-full py-3 px-4 rounded-xl text-center text-sm font-bold text-white transition-colors">
+                        Elegir {{ d.plan.nombre }}
+                    </a>
+                    {% else %}
+                    <span class="block w-full py-3 px-4 rounded-xl text-center text-sm font-bold text-neutral-500 border border-white/5 bg-white/[0.02] cursor-not-allowed" aria-disabled="true">Disponible pronto</span>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="lg:col-span-3 text-center py-10">
+                    <p class="text-neutral-400">Los planes de GestionAR se publican muy pronto.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if planes %}
+        <!-- Comparativa -->
+        <div class="mt-20 max-w-6xl mx-auto reveal">
+            <h3 class="text-2xl font-bold text-white text-center mb-8">Compará los planes</h3>
+            <div class="glass-card hover:translate-y-0 rounded-3xl overflow-x-auto">
+                <table class="w-full text-sm min-w-[560px]">
+                    <thead>
+                        <tr class="border-b border-white/10 text-left">
+                            <th class="p-5 font-medium text-neutral-500"></th>
+                            {% for d in planes %}<th class="p-5 font-bold text-white text-center {% if d.destacado %}text-indigo-300{% endif %}">{{ d.plan.nombre }}</th>{% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="text-neutral-300">
+                        {% for fila in filas_limites %}
+                        <tr class="border-b border-white/5">
+                            <td class="p-5 text-neutral-400">{{ fila.nombre }}</td>
+                            {% for celda in fila.celdas %}<td class="p-5 text-center font-semibold text-white">{{ celda }}</td>{% endfor %}
+                        </tr>
+                        {% endfor %}
+                        {% for fila in filas_funciones %}
+                        <tr class="border-b border-white/5 last:border-0">
+                            <td class="p-5 text-neutral-400">{{ fila.nombre }}</td>
+                            {% for incluye in fila.celdas %}
+                            <td class="p-5 text-center">
+                                {% if incluye %}<span class="inline-flex text-emerald-400" title="Incluido"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg><span class="sr-only">Incluido</span></span>
+                                {% else %}<span class="text-neutral-700" title="No incluido">—<span class="sr-only">No incluido</span></span>{% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-neutral-600 text-center mt-4">Los comprobantes ARCA por mes son un cupo de referencia: nunca cortamos una factura en el mostrador. Los precios se informan en pesos argentinos.</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-24 border-t border-white/5 bg-[#030303]">
+    <div class="max-w-3xl mx-auto px-5">
+        <div class="text-center mb-12 reveal">
+            <h2 class="text-3xl md:text-4xl font-bold text-white">Preguntas frecuentes</h2>
+        </div>
+        <div class="space-y-4">
+            <div class="faq-item glass-card rounded-2xl reveal hover:-translate-y-1">
+                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left focus:outline-none">
+                    <span class="font-semibold text-white">¿Necesito instalar algo?</span>
+                    <span class="faq-icon text-xl text-neutral-500 transition-transform duration-300">+</span>
+                </button>
+                <div class="faq-content px-6 text-neutral-400 text-sm">
+                    <p class="pb-6">No. GestionAR funciona desde el navegador, en la computadora, tablet o celular del local. Necesitás conexión a internet para usarlo.</p>
+                </div>
+            </div>
+            <div class="faq-item glass-card rounded-2xl reveal hover:-translate-y-1" style="transition-delay: 0.1s;">
+                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left focus:outline-none">
+                    <span class="font-semibold text-white">¿Cómo funciona la facturación con ARCA?</span>
+                    <span class="faq-icon text-xl text-neutral-500 transition-transform duration-300">+</span>
+                </button>
+                <div class="faq-content px-6 text-neutral-400 text-sm">
+                    <p class="pb-6">Delegás en ARCA el servicio de facturación a CoreX y cargás el número de tu punto de venta. Desde ahí, las ventas con medios de pago facturables emiten su comprobante con CAE y código QR; las que pagás en efectivo sin factura, no.</p>
+                </div>
+            </div>
+            <div class="faq-item glass-card rounded-2xl reveal hover:-translate-y-1" style="transition-delay: 0.2s;">
+                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left focus:outline-none">
+                    <span class="font-semibold text-white">¿Puedo cambiar de plan más adelante?</span>
+                    <span class="faq-icon text-xl text-neutral-500 transition-transform duration-300">+</span>
+                </button>
+                <div class="faq-content px-6 text-neutral-400 text-sm">
+                    <p class="pb-6">Sí, desde tu portal de cliente. Seguís usando el mismo sistema y los mismos datos. Si bajás de plan no se borra nada: lo que ya cargaste se conserva, y los límites se aplican a lo que quieras crear a partir de ese momento.</p>
+                </div>
+            </div>
+            <div class="faq-item glass-card rounded-2xl reveal hover:-translate-y-1" style="transition-delay: 0.3s;">
+                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left focus:outline-none">
+                    <span class="font-semibold text-white">¿Cómo se entregan los pedidos de la tienda web?</span>
+                    <span class="faq-icon text-xl text-neutral-500 transition-transform duration-300">+</span>
+                </button>
+                <div class="faq-content px-6 text-neutral-400 text-sm">
+                    <p class="pb-6">El pedido llega a tu panel, un integrante de tu equipo coordina el envío o el retiro con el cliente y el costo queda registrado en la venta, que se factura como cualquier otra.</p>
+                </div>
+            </div>
+            <div class="faq-item glass-card rounded-2xl reveal hover:-translate-y-1" style="transition-delay: 0.4s;">
+                <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left focus:outline-none">
+                    <span class="font-semibold text-white">¿Mis datos están separados de los de otros comercios?</span>
+                    <span class="faq-icon text-xl text-neutral-500 transition-transform duration-300">+</span>
+                </button>
+                <div class="faq-content px-6 text-neutral-400 text-sm">
+                    <p class="pb-6">Sí. Cada comercio tiene su propia dirección y sus usuarios solo pueden entrar a la suya. Podés exportar tus datos en cualquier momento.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-32 relative overflow-hidden">
+    <div class="absolute inset-0 bg-indigo-600/5"></div>
+    <div class="max-w-4xl mx-auto px-5 text-center relative z-10 reveal">
+        <h2 class="text-4xl md:text-6xl font-black text-white mb-6">Ordená tu comercio hoy.</h2>
+        <p class="text-xl text-neutral-400 mb-10 max-w-2xl mx-auto">Una sola herramienta para cobrar, controlar tu stock, vender online y facturar.</p>
+        <a href="#planes" class="glow-border-button glow-button inline-flex items-center gap-2 rounded-xl bg-white text-black px-10 py-4 text-base font-bold transition-transform hover:scale-105">
+            Elegir mi plan
+        </a>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="border-t border-white/5 bg-[#030303] pt-16 pb-8">
+    <div class="max-w-7xl mx-auto px-5">
+        <div class="flex flex-col md:flex-row justify-between gap-10 mb-16">
+            <div>
+                <a href="{% url 'landing-home' %}" class="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center"><span class="text-white font-black text-sm leading-none">G</span></div>
+                    <span class="font-bold text-white">GestionAR</span>
+                </a>
+                <p class="text-sm text-neutral-500 max-w-xs">Caja, stock, tienda web y facturación electrónica para comercios.</p>
+            </div>
+            <div class="flex gap-16 text-sm">
+                <div>
+                    <p class="font-semibold text-white mb-4">Producto</p>
+                    <div class="flex flex-col gap-3 text-neutral-500">
+                        <a href="#funciones" class="hover:text-white transition">Funciones</a>
+                        <a href="#planes" class="hover:text-white transition">Planes</a>
+                        <a href="#como-funciona" class="hover:text-white transition">Cómo funciona</a>
+                        <a href="{% url 'facturar' %}" class="hover:text-white transition">FacturAR</a>
+                    </div>
+                </div>
+                <div>
+                    <p class="font-semibold text-white mb-4">Soporte</p>
+                    <div class="flex flex-col gap-3 text-neutral-500">
+                        <a href="#faq" class="hover:text-white transition">FAQ</a>
+                        <a href="{% url 'login' %}" class="hover:text-white transition">Ingresar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-neutral-600">
+            <p>&copy; 2026 GestionAR de CoreX. Todos los derechos reservados.</p>
+            <div class="flex gap-4">
+                <a href="/dashboard/terminos-condiciones/" target="_blank" class="hover:text-neutral-400 transition-colors">Términos</a>
+                <a href="/dashboard/privacidad/" target="_blank" class="hover:text-neutral-400 transition-colors">Privacidad</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script>
+    // Intersection Observer para las animaciones
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                if (entry.target.classList.contains('reveal')) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+                
+                if (entry.target.classList.contains('js-anim-bar')) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, 800);
+                    observer.unobserve(entry.target);
+                }
+
+                if (entry.target.classList.contains('js-anim-progress')) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, 400); 
+                    observer.unobserve(entry.target);
+                }
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal, .js-anim-bar, .js-anim-progress').forEach(el => observer.observe(el));
+
+    // Navbar blur al hacer scroll
+    window.addEventListener('scroll', () => {
+        const nav = document.querySelector('nav');
+        if (window.scrollY > 50) {
+            nav.style.background = 'rgba(10, 10, 10, 0.8)';
+            nav.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        } else {
+            nav.style.background = 'rgba(20, 20, 20, 0.8)';
+            nav.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+        }
+    });
+
+    // Toggle FAQ
+    function toggleFaq(btn) {
+        const item = btn.parentElement;
+        const allItems = document.querySelectorAll('.faq-item');
+        
+        allItems.forEach(i => {
+            if(i !== item) i.classList.remove('active');
+        });
+        
+        item.classList.toggle('active');
+    }
+
+    // Toggle Precios (con actualización de URLs dinámicas para Django)
+    function setBilling(mode) {
+        const btnMensual = document.getElementById('btn-mensual');
+        const btnAnual = document.getElementById('btn-anual');
+        const prices = document.querySelectorAll('.price');
+        const labels = document.querySelectorAll('.label-periodo');
+        const registerLinks = document.querySelectorAll('.btn-registro-plan');
+
+        // Actualizamos dinámicamente los enlaces de Django dependiendo si es anual o mensual
+        registerLinks.forEach(link => {
+            const planId = link.getAttribute('data-plan-id');
+            // Reconstruimos la URL según el router de Django: /registro/<plan_id>/<frecuencia>/
+            link.href = `/registro/${planId}/${mode}/`;
+        });
+
+        const formatearMoneda = (valor) => {
+            if (!Number(valor)) return 'Consultar';
+            return '$' + Number(valor).toLocaleString('es-AR');
+        };
+
+        if(mode === 'mensual') {
+            btnMensual.className = 'px-6 py-2 rounded-lg text-sm font-semibold bg-white/10 text-white shadow-sm transition-all';
+            btnAnual.className = 'px-6 py-2 rounded-lg text-sm font-semibold text-neutral-400 hover:text-white transition-all';
+            
+            prices.forEach(p => {
+                p.style.opacity = '0';
+                p.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    p.innerText = formatearMoneda(p.dataset.mensual);
+                    p.style.opacity = '1';
+                    p.style.transform = 'translateY(0)';
+                }, 200);
+            });
+            labels.forEach(l => l.innerText = 'por mes');
+        } else {
+            btnAnual.className = 'px-6 py-2 rounded-lg text-sm font-semibold bg-white/10 text-white shadow-sm transition-all';
+            btnMensual.className = 'px-6 py-2 rounded-lg text-sm font-semibold text-neutral-400 hover:text-white transition-all';
+            
+            prices.forEach(p => {
+                p.style.opacity = '0';
+                p.style.transform = 'translateY(10px)';
+                setTimeout(() => {
+                    p.innerText = formatearMoneda(p.dataset.anual);
+                    p.style.opacity = '1';
+                    p.style.transform = 'translateY(0)';
+                }, 200);
+            });
+            // Asumimos que el precio guardado en BD es el total anual, por lo que el label cambia a "por año"
+            labels.forEach(l => l.innerText = 'por año');
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        setBilling('mensual');
+    });
+</script>
+</body>
+</html>

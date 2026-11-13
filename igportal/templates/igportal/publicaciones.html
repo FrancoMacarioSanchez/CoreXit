@@ -1,0 +1,60 @@
+{% extends "staff/base.html" %}
+{% block title %}Publicaciones de Instagram | CoreX{% endblock %}
+{% block header_title %}Publicaciones de Instagram{% endblock %}
+{% block header_actions %}<a href="{% url 'igportal:nueva' %}" class="btn btn-primary btn-sm">Nueva publicación</a>{% endblock %}
+
+{% block content %}
+{% include "igportal/_tabs.html" with activa="publicaciones" %}
+{% if not config.conectado %}
+<div class="p-4 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400 text-sm">Instagram no está conectado: podés guardar borradores, pero no publicar todavía.</div>
+{% endif %}
+
+<div class="flex flex-wrap gap-2 text-xs">
+    <a href="?" class="badge {% if not estado %}badge-info{% else %}badge-mute{% endif %}">Todas</a>
+    {% for val, nombre in estados %}<a href="?estado={{ val }}" class="badge {% if estado == val %}badge-info{% else %}badge-mute{% endif %}">{{ nombre }} · {% for k, v in conteo.items %}{% if k == val %}{{ v }}{% endif %}{% endfor %}</a>{% endfor %}
+</div>
+
+<div class="card overflow-hidden"><div class="overflow-x-auto">
+<table class="tbl">
+    <thead><tr><th>Contenido</th><th>Tipo</th><th>Estado</th><th>Cuándo</th><th>Creó</th><th></th></tr></thead>
+    <tbody>
+    {% for p in publicaciones %}
+        <tr>
+            <td class="max-w-sm">
+                <p class="truncate font-medium">{{ p.caption|default:"Sin texto" }}</p>
+                <a href="{{ p.media_url }}" target="_blank" rel="noopener" class="text-xs link truncate block">Ver archivo</a>
+                {% if p.estado == 'error' %}<p class="text-xs text-red-500 mt-1">{{ p.error }}</p>{% endif %}
+            </td>
+            <td>{{ p.get_tipo_display }}</td>
+            <td><span class="badge {% if p.estado == 'publicada' %}badge-ok{% elif p.estado == 'error' %}badge-bad{% elif p.estado == 'programada' or p.estado == 'procesando' %}badge-warn{% else %}badge-mute{% endif %}">{{ p.get_estado_display }}</span>
+                {% if p.vencida %}<span class="block text-[11px] text-amber-500 mt-1">Pasó la hora y no salió: revisá el cron</span>{% endif %}</td>
+            <td class="whitespace-nowrap muted">
+                {% if p.publicada_en %}{{ p.publicada_en|date:"d/m/Y H:i" }}{% elif p.programada_para %}{{ p.programada_para|date:"d/m/Y H:i" }}{% else %}—{% endif %}
+            </td>
+            <td class="muted">{{ p.creado_por.username|default:"—" }}</td>
+            <td>
+                <div class="flex flex-wrap gap-1.5 justify-end">
+                    {% if p.permalink %}<a class="btn btn-ghost btn-sm" href="{{ p.permalink }}" target="_blank" rel="noopener">Ver en IG</a>{% endif %}
+                    {% if p.estado == 'procesando' %}
+                        <form method="post" action="{% url 'igportal:verificar' p.id %}">{% csrf_token %}<button class="btn btn-ghost btn-sm">Verificar</button></form>
+                    {% endif %}
+                    {% if p.editable %}
+                        <form method="post" action="{% url 'igportal:publicar' p.id %}">{% csrf_token %}<button class="btn btn-ok btn-sm">{% if p.estado == 'error' %}Reintentar{% else %}Publicar ahora{% endif %}</button></form>
+                        <a class="btn btn-ghost btn-sm" href="{% url 'igportal:editar' p.id %}">Editar</a>
+                    {% endif %}
+                    {% if p.estado == 'programada' %}
+                        <form method="post" action="{% url 'igportal:cancelar' p.id %}">{% csrf_token %}<button class="btn btn-ghost btn-sm">Quitar programación</button></form>
+                    {% endif %}
+                    {% if p.estado != 'procesando' %}
+                        <form method="post" action="{% url 'igportal:eliminar' p.id %}" onsubmit="return confirm('¿Eliminar del portal?{% if p.estado == 'publicada' %} El post seguirá en Instagram.{% endif %}')">{% csrf_token %}<button class="btn btn-danger btn-sm">Eliminar</button></form>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6" class="text-center muted py-12">No hay publicaciones todavía.</td></tr>
+    {% endfor %}
+    </tbody>
+</table></div></div>
+<p class="text-xs muted">Las publicaciones programadas salen solas si el servidor ejecuta <code>python manage.py publicar_instagram</code> cada 5 minutos.</p>
+{% endblock %}

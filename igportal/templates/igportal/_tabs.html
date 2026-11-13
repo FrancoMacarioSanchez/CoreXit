@@ -1,0 +1,5 @@
+<div class="flex flex-wrap gap-2 text-sm">
+    <a href="{% url 'igportal:panel' %}" class="btn btn-sm {% if activa == 'panel' %}btn-primary{% else %}btn-ghost{% endif %}">Panel</a>
+    <a href="{% url 'igportal:publicaciones' %}" class="btn btn-sm {% if activa == 'publicaciones' %}btn-primary{% else %}btn-ghost{% endif %}">Publicaciones</a>
+    {% if rol_dev %}<a href="{% url 'igportal:conexion' %}" class="btn btn-sm {% if activa == 'conexion' %}btn-primary{% else %}btn-ghost{% endif %}">Conexión</a>{% endif %}
+</div>

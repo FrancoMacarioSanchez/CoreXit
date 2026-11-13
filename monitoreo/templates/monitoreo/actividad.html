@@ -1,0 +1,95 @@
+{% extends "devpanel/base.html" %}
+{% block title %}Actividad del staff | Dev Console{% endblock %}
+{% block header_title %}Actividad del staff{% endblock %}
+{% block header_actions %}
+<a href="?{{ querystring }}{% if querystring %}&{% endif %}export=csv" class="btn btn-ghost btn-sm">Exportar CSV</a>
+{% endblock %}
+
+{% block content %}
+<div class="grid sm:grid-cols-3 gap-4">
+    <div class="card card-pad"><p class="label">Acciones hoy</p><p class="kpi-valor">{{ kpis.acciones_hoy }}</p></div>
+    <div class="card card-pad"><p class="label">Usuarios activos (24 h)</p><p class="kpi-valor">{{ kpis.activos_24h }}</p></div>
+    <div class="card card-pad"><p class="label">Ingresos fallidos (24 h)</p><p class="kpi-valor {% if kpis.fallidos_24h %}text-red-500{% endif %}">{{ kpis.fallidos_24h }}</p></div>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="px-6 pt-5"><h3 class="card-title">Por usuario · últimos 7 días</h3></div>
+    <div class="overflow-x-auto mt-3">
+    <table class="tbl">
+        <thead><tr><th>Usuario</th><th>Rol</th><th class="text-right">Ingresos</th><th class="text-right">Acciones</th><th class="text-right">Visitas</th><th>Última actividad</th><th></th></tr></thead>
+        <tbody>
+        {% for u in por_usuario %}
+            <tr>
+                <td class="font-semibold">{{ u.get_full_name|default:u.username }} <span class="muted font-normal">@{{ u.username }}</span></td>
+                <td>{% if u.is_superuser %}<span class="badge badge-info">Superusuario</span>{% else %}<span class="badge badge-mute">Staff</span>{% endif %}</td>
+                <td class="text-right">{{ u.logins_7d }}</td>
+                <td class="text-right font-semibold">{{ u.acciones_7d }}</td>
+                <td class="text-right">{{ u.visitas_7d }}</td>
+                <td class="muted">{% if u.ultima %}{{ u.ultima|date:"d/m/Y H:i" }}{% else %}Sin registros{% endif %}</td>
+                <td class="text-right"><a class="link text-xs" href="?usuario={{ u.username|urlencode }}">Ver detalle</a></td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="7" class="muted text-center py-8">No hay usuarios del equipo.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+
+<form class="flex flex-wrap gap-3 items-end" method="get">
+    <div><label class="label">Usuario</label>
+        <select name="usuario" class="input !w-48" onchange="this.form.submit()">
+            <option value="">Todos</option>
+            {% for u in por_usuario %}<option value="{{ u.username }}" {% if filtros.usuario == u.username %}selected{% endif %}>{{ u.username }}</option>{% endfor %}
+        </select></div>
+    <div><label class="label">Tipo</label>
+        <select name="tipo" class="input !w-44" onchange="this.form.submit()">
+            <option value="" {% if not filtros.tipo %}selected{% endif %}>Sin visitas</option>
+            <option value="todo" {% if filtros.tipo == 'todo' %}selected{% endif %}>Todo</option>
+            <option value="acciones" {% if filtros.tipo == 'acciones' %}selected{% endif %}>Solo acciones</option>
+            {% for v, n in tipos %}{% if v != 'accion' %}<option value="{{ v }}" {% if filtros.tipo == v %}selected{% endif %}>{{ n }}</option>{% endif %}{% endfor %}
+        </select></div>
+    <div><label class="label">Desde</label><input type="date" name="desde" value="{{ filtros.desde }}" class="input !w-40"></div>
+    <div><label class="label">Hasta</label><input type="date" name="hasta" value="{{ filtros.hasta }}" class="input !w-40"></div>
+    <div class="flex-1 min-w-[10rem]"><label class="label">Buscar</label><input type="search" name="q" value="{{ filtros.q }}" placeholder="Descripción, ruta o IP" class="input"></div>
+    <button class="btn btn-primary">Filtrar</button>
+    {% if filtros %}<a href="?" class="btn btn-ghost">Limpiar</a>{% endif %}
+</form>
+
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+    <table class="tbl">
+        <thead><tr><th>Fecha</th><th>Usuario</th><th>Qué hizo</th><th>Tipo</th><th>Estado</th><th>IP</th></tr></thead>
+        <tbody>
+        {% for r in registros %}
+            <tr>
+                <td class="whitespace-nowrap muted">{{ r.creado|date:"d/m/Y H:i:s" }}</td>
+                <td class="font-semibold">{{ r.username|default:"—" }}</td>
+                <td>{{ r.descripcion|default:r.ruta }}
+                    {% if r.ruta and r.descripcion %}<span class="block text-xs muted font-mono truncate max-w-md" title="{{ r.metodo }} {{ r.ruta }}">{{ r.metodo }} {{ r.ruta }}</span>{% endif %}</td>
+                <td>{% if r.tipo == 'accion' %}<span class="badge badge-info">Acción</span>
+                    {% elif r.tipo == 'login_fallido' %}<span class="badge badge-bad">Intento fallido</span>
+                    {% elif r.tipo == 'login' %}<span class="badge badge-ok">Ingreso</span>
+                    {% elif r.tipo == 'logout' %}<span class="badge badge-mute">Salida</span>
+                    {% else %}<span class="badge badge-mute">Visita</span>{% endif %}</td>
+                <td>{% if r.estado_http %}<span class="badge {% if r.estado_http >= 400 %}badge-bad{% else %}badge-ok{% endif %}">{{ r.estado_http }}</span>{% endif %}</td>
+                <td class="muted font-mono text-xs">{{ r.ip|default:"" }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="muted text-center py-10">No hay registros con esos filtros.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% if registros.paginator.num_pages > 1 %}
+    <div class="flex items-center justify-between px-6 py-4 border-t border-slate-200 dark:border-slate-800 text-sm">
+        <span class="muted">Página {{ registros.number }} de {{ registros.paginator.num_pages }} · {{ registros.paginator.count }} registros</span>
+        <div class="flex gap-2">
+            {% if registros.has_previous %}<a class="btn btn-ghost btn-sm" href="?{{ querystring }}{% if querystring %}&{% endif %}page={{ registros.previous_page_number }}">← Anterior</a>{% endif %}
+            {% if registros.has_next %}<a class="btn btn-ghost btn-sm" href="?{{ querystring }}{% if querystring %}&{% endif %}page={{ registros.next_page_number }}">Siguiente →</a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+<p class="text-xs muted">Se registran las acciones (formularios enviados), ingresos y salidas del equipo. Nunca se guardan contraseñas ni el contenido de los formularios.</p>
+{% endblock %}

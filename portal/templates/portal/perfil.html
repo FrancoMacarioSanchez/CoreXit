@@ -1,0 +1,20 @@
+{% extends "portal/base.html" %}
+{% block title %}Datos fiscales | CoreX{% endblock %}
+{% block header_title %}Datos de facturación (ARCA){% endblock %}
+
+{% block content %}
+<div class="card card-pad max-w-3xl">
+    <p class="text-sm muted mb-6">Usamos estos datos para emitir tus facturas. Si cambia tu condición frente a ARCA, actualizala acá antes del próximo período.</p>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {% for campo in form %}
+                <div class="{% if campo.name == 'domicilio_fiscal' %}sm:col-span-2{% endif %}">
+                    <label class="label">{{ campo.label }}</label>{{ campo }}{{ campo.errors }}
+                </div>
+            {% endfor %}
+        </div>
+        <button class="btn btn-primary">Guardar cambios</button>
+    </form>
+</div>
+{% endblock %}

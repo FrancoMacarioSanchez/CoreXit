@@ -1,0 +1,8 @@
+<div class="card card-pad">
+    <div class="flex items-start justify-between gap-2">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">{{ titulo }}</span>
+        {% if icono %}<span class="text-lg leading-none">{{ icono }}</span>{% endif %}
+    </div>
+    <p class="kpi-valor {{ color }}">{{ valor }}</p>
+    {% if pie %}<p class="text-xs text-slate-400 mt-1">{{ pie }}</p>{% endif %}
+</div>

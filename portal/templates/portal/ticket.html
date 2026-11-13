@@ -1,0 +1,31 @@
+{% extends "portal/base.html" %}
+{% load corex %}
+{% block title %}Ticket #{{ ticket.id }} | CoreX{% endblock %}
+{% block breadcrumb %}<a href="{% url 'portal:soporte' %}" class="text-[11px] text-slate-400 hover:text-indigo-500">← Soporte</a>{% endblock %}
+{% block header_title %}#{{ ticket.id }} · {{ ticket.asunto }}{% endblock %}
+{% block header_actions %}{% estado ticket.estado %}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card card-pad lg:col-span-2 space-y-6">
+        {% include "partials/hilo_ticket.html" with mostrar_internos=False %}
+        <form method="post" class="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+            {% csrf_token %}
+            {{ form.mensaje }}
+            <div class="flex justify-between gap-2">
+                {% if ticket.esta_abierto %}
+                    <button name="accion" value="cerrar" class="btn btn-ghost btn-sm" formnovalidate>Ya se resolvió, cerrar</button>
+                {% else %}<span></span>{% endif %}
+                <button class="btn btn-primary">Responder</button>
+            </div>
+        </form>
+    </div>
+    <div class="card card-pad h-fit text-sm space-y-2">
+        <h3 class="card-title mb-2">Detalle</h3>
+        <div class="flex justify-between"><span class="muted">Estado</span>{% estado ticket.estado %}</div>
+        <div class="flex justify-between"><span class="muted">Prioridad</span>{% estado ticket.prioridad %}</div>
+        <div class="flex justify-between"><span class="muted">Creado</span><span>{{ ticket.created_at|date:"d/m/Y H:i" }}</span></div>
+        {% if ticket.contratacion %}<div class="flex justify-between"><span class="muted">Servicio</span><a class="link" href="{% url 'portal:servicio' ticket.contratacion_id %}">{{ ticket.contratacion.servicio }}</a></div>{% endif %}
+    </div>
+</div>
+{% endblock %}

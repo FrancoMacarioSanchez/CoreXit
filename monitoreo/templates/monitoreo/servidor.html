@@ -1,0 +1,126 @@
+{% extends "devpanel/base.html" %}
+{% block title %}Servidor | Dev Console{% endblock %}
+{% block header_title %}Métricas del servidor{% endblock %}
+{% block header_actions %}
+<div class="flex items-center gap-2">
+    <span id="estado" class="text-xs muted">Conectando…</span>
+    <select id="rango" class="input !w-auto !py-1.5 text-xs">
+        {% for r in rangos %}<option value="{{ r }}">Últimas {{ r }}</option>{% endfor %}
+    </select>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card card-pad"><p class="label">CPU</p><p class="kpi-valor" id="v-cpu">—</p>
+        <div class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 mt-3 overflow-hidden"><div id="b-cpu" class="h-full bg-indigo-500 transition-all" style="width:0"></div></div></div>
+    <div class="card card-pad"><p class="label">Memoria</p><p class="kpi-valor" id="v-memoria">—</p>
+        <div class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 mt-3 overflow-hidden"><div id="b-memoria" class="h-full bg-emerald-500 transition-all" style="width:0"></div></div>
+        <p class="text-xs muted mt-2" id="d-memoria"></p></div>
+    <div class="card card-pad"><p class="label">Disco</p><p class="kpi-valor" id="v-disco">—</p>
+        <div class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-800 mt-3 overflow-hidden"><div id="b-disco" class="h-full bg-amber-500 transition-all" style="width:0"></div></div>
+        <p class="text-xs muted mt-2" id="d-disco"></p></div>
+    <div class="card card-pad"><p class="label">Base de datos</p><p class="kpi-valor"><span id="v-db">—</span><span class="text-base font-semibold muted"> ms</span></p>
+        <p class="text-xs muted mt-3">{{ info.db_motor }}{% if info.db_mb %} · {{ info.db_mb }} MB{% endif %}</p></div>
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card card-pad"><p class="label">Pedidos (24 h)</p><p class="kpi-valor" id="r-pedidos">—</p></div>
+    <div class="card card-pad"><p class="label">Errores 5xx (24 h)</p><p class="kpi-valor" id="r-5xx">—</p></div>
+    <div class="card card-pad"><p class="label">Errores 4xx (24 h)</p><p class="kpi-valor" id="r-4xx">—</p></div>
+    <div class="card card-pad"><p class="label">Respuesta promedio</p><p class="kpi-valor"><span id="r-ms">—</span><span class="text-base font-semibold muted"> ms</span></p></div>
+</div>
+
+<div class="card card-pad">
+    <h3 class="card-title mb-4">Recursos (%)</h3>
+    <div class="h-64"><canvas id="ch-recursos"></canvas></div>
+</div>
+<div class="grid lg:grid-cols-2 gap-6">
+    <div class="card card-pad"><h3 class="card-title mb-4">Pedidos y errores</h3><div class="h-64"><canvas id="ch-trafico"></canvas></div></div>
+    <div class="card card-pad"><h3 class="card-title mb-4">Tiempo de respuesta (ms)</h3><div class="h-64"><canvas id="ch-latencia"></canvas></div></div>
+</div>
+
+<div class="card card-pad">
+    <h3 class="card-title mb-4">Este servidor</h3>
+    <dl class="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-3 text-sm">
+        <div><dt class="label">Equipo</dt><dd>{{ info.host }}</dd></div>
+        <div><dt class="label">Sistema</dt><dd>{{ info.sistema }} · {{ info.cpus }} CPU</dd></div>
+        <div><dt class="label">Python / Django</dt><dd>{{ info.python }} / {{ info.django }}</dd></div>
+        <div><dt class="label">Encendido hace</dt><dd id="uptime-servidor" data-s="{{ info.uptime_servidor|default_if_none:''|stringformat:'s' }}">—</dd></div>
+        <div><dt class="label">Aplicación corriendo hace</dt><dd id="uptime-proceso" data-s="{{ info.uptime_proceso|stringformat:'f' }}">—</dd></div>
+        <div><dt class="label">Memoria de la aplicación</dt><dd><span id="v-proceso">—</span> MB</dd></div>
+        <div><dt class="label">Carga (1 min)</dt><dd id="v-carga">—</dd></div>
+        <div><dt class="label">Modo debug</dt><dd>{% if info.debug %}<span class="badge badge-warn">Activado</span>{% else %}<span class="badge badge-ok">Apagado</span>{% endif %}</dd></div>
+    </dl>
+    {% if not info.psutil %}
+    <p class="text-xs muted mt-5">Para ver más datos (sobre todo en Windows) instalá <code>psutil</code>: <code>pip install psutil</code>.</p>
+    {% endif %}
+    <p class="text-xs muted mt-2">Las muestras se guardan mientras esta pantalla está abierta. Para que se registren siempre, programá <code>python manage.py muestrear_servidor</code> cada minuto.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const $ = id => document.getElementById(id);
+    const pct = v => v == null ? '—' : fmtNum(v) + '%';
+    let rango = '1h', cargando = false;
+
+    function dur(s) {
+        s = Number(s); if (!isFinite(s)) return '—';
+        const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+        return (d ? d + ' d ' : '') + (h ? h + ' h ' : '') + m + ' min';
+    }
+    ['uptime-servidor', 'uptime-proceso'].forEach(id => { const e = $(id); e.textContent = e.dataset.s ? dur(e.dataset.s) : 'no disponible'; });
+
+    const base = { responsive: true, interaction: { mode: 'index', intersect: false }, animation: false,
+                   plugins: { legend: { position: 'bottom' } }, scales: { x: { ticks: { maxTicksLimit: 8 } } } };
+    const linea = (label, color) => ({ label, data: [], borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 0, tension: .3, spanGaps: true });
+    const chRec = new Chart($('ch-recursos'), { type: 'line', data: { labels: [], datasets: [
+        linea('CPU', PALETA[0]), linea('Memoria', PALETA[1]), linea('Disco', PALETA[2])] },
+        options: { ...base, scales: { ...base.scales, y: { min: 0, max: 100 } } } });
+    const chTra = new Chart($('ch-trafico'), { type: 'bar', data: { labels: [], datasets: [
+        { label: 'Pedidos', data: [], backgroundColor: PALETA[0], borderRadius: 3 },
+        { label: '4xx', data: [], backgroundColor: PALETA[2], borderRadius: 3 },
+        { label: '5xx', data: [], backgroundColor: PALETA[3], borderRadius: 3 }] },
+        options: { ...base, scales: { ...base.scales, y: { beginAtZero: true } } } });
+    const chLat = new Chart($('ch-latencia'), { type: 'line', data: { labels: [], datasets: [
+        linea('Promedio', PALETA[4]), linea('Máximo', PALETA[5]), linea('Base de datos', PALETA[1])] },
+        options: { ...base, scales: { ...base.scales, y: { beginAtZero: true } } } });
+
+    function poner(ch, labels, series) {
+        ch.data.labels = labels; series.forEach((s, i) => ch.data.datasets[i].data = s); ch.update();
+    }
+
+    async function cargar() {
+        if (cargando) return; cargando = true;
+        try {
+            const r = await fetch('{% url "monitoreo:servidor_datos" %}?rango=' + rango, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!r.ok) throw new Error(r.status);
+            const d = await r.json(), v = d.vivo;
+            $('v-cpu').textContent = pct(v.cpu); $('b-cpu').style.width = (v.cpu || 0) + '%';
+            $('v-memoria').textContent = pct(v.memoria); $('b-memoria').style.width = (v.memoria || 0) + '%';
+            $('d-memoria').textContent = v.memoria_total_mb ? fmtNum(v.memoria_usada_mb) + ' de ' + fmtNum(v.memoria_total_mb) + ' MB' : '';
+            $('v-disco').textContent = pct(v.disco); $('b-disco').style.width = (v.disco || 0) + '%';
+            $('d-disco').textContent = v.disco_libre_gb != null ? fmtNum(v.disco_libre_gb) + ' GB libres' : '';
+            $('v-db').textContent = fmtNum(v.db_ms); $('v-proceso').textContent = fmtNum(v.proceso_mb);
+            $('v-carga').textContent = v.carga == null ? 'no disponible' : fmtNum(v.carga);
+            const s = d.resumen_24h;
+            $('r-pedidos').textContent = fmtNum(s.pedidos); $('r-5xx').textContent = fmtNum(s.errores_5xx);
+            $('r-4xx').textContent = fmtNum(s.errores_4xx); $('r-ms').textContent = fmtNum(s.ms_prom);
+            poner(chRec, d.recursos.x, [d.recursos.cpu, d.recursos.memoria, d.recursos.disco]);
+            poner(chTra, d.trafico.x, [d.trafico.total, d.trafico.c4xx, d.trafico.c5xx]);
+            // la latencia de la base viene en la serie de recursos; se alinea por posición solo si coincide la cantidad
+            const dbms = d.recursos.x.length === d.trafico.x.length ? d.recursos.db_ms : [];
+            poner(chLat, d.trafico.x, [d.trafico.ms_prom, d.trafico.ms_max, dbms]);
+            $('estado').textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-AR');
+        } catch (e) {
+            $('estado').textContent = 'Sin conexión con el servidor';
+        } finally { cargando = false; }
+    }
+    $('rango').addEventListener('change', e => { rango = e.target.value; cargar(); });
+    cargar();
+    setInterval(() => { if (!document.hidden) cargar(); }, 10000);
+})();
+</script>
+{% endblock %}

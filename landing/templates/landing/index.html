@@ -127,7 +127,7 @@
                 <a href="#custom" class="hover:text-violet-400 transition-colors">A Medida</a>
                 <a href="#contacto" class="hover:text-white transition-colors">Contacto</a>
             </div>
-            <a href="/dashboard/portal" class="hidden md:flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2 rounded-full text-sm font-medium transition-all hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+            <a href="{% url 'login' %}" class="hidden md:flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-5 py-2 rounded-full text-sm font-medium transition-all hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)]">
                 Acceso Clientes <i class="ph ph-arrow-right"></i>
             </a>
         </div>
@@ -194,7 +194,7 @@
                     </div>
                 </div>
 
-                <!-- NexoRetail (Span 1) -->
+                <!-- GestionAR (Span 1) -->
                 <div class="lg:col-span-1 bento-card bento-card-violet rounded-3xl p-8 md:p-10 relative overflow-hidden group flex flex-col justify-between min-h-[400px]">
                     <div class="absolute bottom-0 right-0 -mr-10 -mb-10 w-48 h-48 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-all duration-700"></div>
                     
@@ -202,14 +202,14 @@
                         <div class="w-14 h-14 rounded-2xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center mb-6">
                             <i class="ph-fill ph-storefront text-3xl text-violet-400"></i>
                         </div>
-                        <h3 class="text-2xl font-bold mb-4">NexoRetail</h3>
+                        <h3 class="text-2xl font-bold mb-4">GestionAR</h3>
                         <p class="text-zinc-400 leading-relaxed mb-8">
-                            Control total de inventario y puntos de venta. Gestiona stock multi-sucursal, proveedores y analiza métricas en tiempo real.
+                            Caja, stock, tienda web y facturación ARCA para tu comercio. Planes Starter, Ecommerce y Empresa, con tu propia dirección web.
                         </p>
                     </div>
 
-                    <a href="#" class="inline-flex items-center justify-center w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-6 py-3 rounded-xl font-medium transition-colors text-white group-hover:border-violet-500/50">
-                        Ver NexoRetail
+                    <a href="{% url 'gestionar' %}" class="inline-flex items-center justify-center w-full bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-6 py-3 rounded-xl font-medium transition-colors text-white group-hover:border-violet-500/50">
+                        Ver GestionAR
                     </a>
                 </div>
 
@@ -280,7 +280,7 @@
                     <span class="text-xl font-bold tracking-tighter text-white">Core<span class="text-violet-500">X</span></span>
                 </div>
                 <div class="flex gap-6">
-                    <p><a href="/dashboard/terminos-condiciones/" target="_blank" class="text-zinc-400 hover:text-cyan-400">Términos y Condiciones</a></p>
+                    <p><a href="{% url 'terminos_condiciones' %}" target="_blank" class="text-zinc-400 hover:text-cyan-400">Términos y Condiciones</a></p>
                     <a href="#" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all"><i class="ph-fill ph-twitter-logo"></i></a>
                     <a href="#" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all"><i class="ph-fill ph-github-logo"></i></a>
                     <a href="#" class="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all"><i class="ph-fill ph-linkedin-logo"></i></a>
@@ -294,7 +294,7 @@
 
         <!-- Sticky Bottom CTA -->
         <div id="ingresar" class="absolute bottom-10 left-1/2 -translate-x-1/2 z-50">
-            <a href="#" class="btn-ingresar bg-zinc-950 border border-cyan-500/50 text-cyan-300 px-12 py-4 rounded-full font-bold text-lg tracking-wide flex items-center gap-3 backdrop-blur-md transition-all">
+            <a href="{% url 'login' %}" class="btn-ingresar bg-zinc-950 border border-cyan-500/50 text-cyan-300 px-12 py-4 rounded-full font-bold text-lg tracking-wide flex items-center gap-3 backdrop-blur-md transition-all">
                 <i class="ph-bold ph-sign-in text-xl"></i> Ingresar al Sistema
             </a>
         </div>

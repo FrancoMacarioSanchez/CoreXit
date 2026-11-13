@@ -1,0 +1,67 @@
+{% extends "staff/base.html" %}
+{% block title %}{% if pub %}Editar{% else %}Nueva{% endif %} publicación | CoreX{% endblock %}
+{% block header_title %}{% if pub %}Editar publicación{% else %}Nueva publicación de Instagram{% endif %}{% endblock %}
+
+{% block content %}
+{% include "igportal/_tabs.html" with activa="publicaciones" %}
+<div class="grid lg:grid-cols-3 gap-6">
+<form method="post" class="card card-pad space-y-5 lg:col-span-2">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div>
+        <label class="label" for="{{ form.tipo.id_for_label }}">Tipo</label>
+        {{ form.tipo }}{{ form.tipo.errors }}
+    </div>
+    <div>
+        <label class="label" for="{{ form.media_url.id_for_label }}">URL pública del archivo</label>
+        {{ form.media_url }}{{ form.media_url.errors }}
+        <p class="text-xs muted mt-1">Instagram descarga el archivo desde esta dirección, así que tiene que ser pública y empezar con https://. Fotos en JPG; reels e historias en video MP4.</p>
+    </div>
+    <div>
+        <label class="label" for="{{ form.caption.id_for_label }}">Texto <span id="contador" class="normal-case font-normal"></span></label>
+        {{ form.caption }}{{ form.caption.errors }}
+        <p class="text-xs muted mt-1">Las historias no llevan texto.</p>
+    </div>
+    <div>
+        <label class="label" for="{{ form.programada_para.id_for_label }}">Programar para</label>
+        {{ form.programada_para }}{{ form.programada_para.errors }}
+        <p class="text-xs muted mt-1">{{ form.programada_para.help_text }}</p>
+    </div>
+    <div class="flex flex-wrap gap-3 pt-2">
+        <button class="btn btn-primary" name="accion" value="guardar">Guardar</button>
+        {% if config.conectado %}<button class="btn btn-ok" name="accion" value="publicar">Guardar y publicar ahora</button>{% endif %}
+        <a href="{% url 'igportal:publicaciones' %}" class="btn btn-ghost">Cancelar</a>
+    </div>
+</form>
+<div class="card card-pad h-fit">
+    <p class="label">Vista previa</p>
+    <div id="previa" class="aspect-square rounded-xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-sm muted overflow-hidden text-center p-4">Pegá la URL para verla acá</div>
+</div>
+</div>
+<style>
+    form .input, form select, form textarea, form input[type=datetime-local], form input[type=url] { width: 100%; }
+    form select, form textarea, form input[type=url], form input[type=datetime-local] {
+        border-radius: .75rem; border: 1px solid rgb(148 163 184 / .35); background: transparent; padding: .5rem .75rem; font-size: .875rem; }
+    form .errorlist { list-style: none; padding: 0; margin: .25rem 0 0; color: #ef4444; font-size: .75rem; }
+</style>
+{% endblock %}
+{% block extra_js %}
+<script>
+(function () {
+    const url = document.getElementById('id_media_url'), previa = document.getElementById('previa');
+    const cap = document.getElementById('id_caption'), cont = document.getElementById('contador');
+    function ver() {
+        const v = url.value.trim();
+        previa.textContent = '';
+        if (!v) { previa.textContent = 'Pegá la URL para verla acá'; return; }
+        const base = v.split('?')[0].toLowerCase();
+        let el;
+        if (/\.(mp4|mov|m4v)$/.test(base)) { el = document.createElement('video'); el.controls = true; el.muted = true; }
+        else { el = document.createElement('img'); el.alt = ''; el.onerror = () => { previa.textContent = 'No se pudo cargar la imagen'; }; }
+        el.src = v; el.className = 'w-full h-full object-cover'; previa.appendChild(el);
+    }
+    function contar() { cont.textContent = '(' + cap.value.length + '/2200)'; }
+    url.addEventListener('change', ver); cap.addEventListener('input', contar); ver(); contar();
+})();
+</script>
+{% endblock %}

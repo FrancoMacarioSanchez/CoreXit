@@ -1,0 +1,65 @@
+{% extends "staff/base.html" %}
+{% block title %}Conexión de Instagram | CoreX{% endblock %}
+{% block header_title %}Conexión de Instagram{% endblock %}
+
+{% block content %}
+{% include "igportal/_tabs.html" with activa="conexion" %}
+<div class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+        <div class="card card-pad">
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <h3 class="card-title">Estado</h3>
+                    <p class="text-sm muted mt-1">
+                        {% if config.conectado %}Conectado{% if config.username %} como <b>@{{ config.username }}</b>{% endif %}.
+                        {% if config.token_expira %}El token vence el {{ config.token_expira|date:"d/m/Y" }} ({{ config.dias_para_vencer }} día{{ config.dias_para_vencer|pluralize }}).{% endif %}
+                        {% else %}Sin conectar.{% endif %}
+                    </p>
+                </div>
+                <span class="badge {% if config.conectado %}{% if config.por_vencer %}badge-warn{% else %}badge-ok{% endif %}{% else %}badge-mute{% endif %}">{% if config.conectado %}{% if config.por_vencer %}Por vencer{% else %}Activo{% endif %}{% else %}Desconectado{% endif %}</span>
+            </div>
+            {% if config.conectado %}
+            <div class="flex flex-wrap gap-2 mt-5">
+                <form method="post">{% csrf_token %}<button class="btn btn-ok btn-sm" name="accion" value="probar">Probar conexión</button></form>
+                <form method="post">{% csrf_token %}<button class="btn btn-ghost btn-sm" name="accion" value="renovar">Renovar token (+60 días)</button></form>
+                <form method="post" onsubmit="return confirm('¿Borrar el token y desconectar la cuenta?')">{% csrf_token %}<button class="btn btn-danger btn-sm" name="accion" value="desconectar">Desconectar</button></form>
+            </div>
+            {% endif %}
+        </div>
+
+        <form method="post" class="card card-pad space-y-5">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="guardar">
+            <h3 class="card-title">Datos de la cuenta</h3>
+            {{ form.non_field_errors }}
+            <div><label class="label">{{ form.access_token.label }}</label>{{ form.access_token }}{{ form.access_token.errors }}
+                <p class="text-xs muted mt-1">{{ form.access_token.help_text }}</p></div>
+            <div class="grid sm:grid-cols-2 gap-4">
+                <div><label class="label">{{ form.expira_en_dias.label }}</label>{{ form.expira_en_dias }}{{ form.expira_en_dias.errors }}</div>
+                <div><label class="label">{{ form.ig_user_id.label }} (opcional)</label>{{ form.ig_user_id }}{{ form.ig_user_id.errors }}</div>
+                <div><label class="label">Servidor de la API</label>{{ form.api_host }}{{ form.api_host.errors }}</div>
+                <div><label class="label">Versión de la API</label>{{ form.api_version }}{{ form.api_version.errors }}</div>
+            </div>
+            <button class="btn btn-primary">Guardar</button>
+        </form>
+    </div>
+
+    <div class="card card-pad h-fit text-sm space-y-3">
+        <h3 class="card-title">Cómo obtener el token</h3>
+        <ol class="list-decimal list-inside space-y-2 muted">
+            <li>La cuenta de Instagram tiene que ser <b>profesional</b> (empresa o creador).</li>
+            <li>En <a class="link" href="https://developers.facebook.com/apps/" target="_blank" rel="noopener">developers.facebook.com</a> creá una app y agregá el producto <b>Instagram</b> → «API con inicio de sesión de Instagram».</li>
+            <li>Agregá tu cuenta como probador y generá el token con los permisos de lectura, publicación y comentarios.</li>
+            <li>Pegá el token acá. Es de larga duración (60 días): renovalo desde esta pantalla antes de que venza.</li>
+        </ol>
+        <p class="text-xs muted">Mientras la app de Meta esté en modo desarrollo solo funciona con cuentas probadoras. Para otras cuentas hay que pasar la revisión de Meta.</p>
+        <p class="text-xs muted">En producción podés definir el token en la variable de entorno <code>INSTAGRAM_ACCESS_TOKEN</code> en lugar de guardarlo en la base.</p>
+    </div>
+</div>
+<style>
+    form .input, form select, form textarea, form input { width: 100%; }
+    form input[type=text], form input[type=password], form input[type=number] {
+        border-radius: .75rem; border: 1px solid rgb(148 163 184 / .35); background: transparent; padding: .5rem .75rem; font-size: .875rem; }
+    form .errorlist { list-style: none; padding: 0; margin: .25rem 0 0; color: #ef4444; font-size: .75rem; }
+</style>
+{% endblock %}

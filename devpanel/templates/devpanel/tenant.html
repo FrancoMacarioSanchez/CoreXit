@@ -1,0 +1,103 @@
+{% extends "devpanel/base.html" %}
+{% load corex %}
+{% block title %}{{ t.schema_name }} | Dev Console{% endblock %}
+{% block breadcrumb %}<a href="{% url 'devpanel:servicio' t.servicio_id %}" class="text-[11px] text-slate-400 hover:text-emerald-500">← {{ t.servicio }}</a>{% endblock %}
+{% block header_title %}{{ t.nombre }} <span class="font-mono text-sm muted">{{ t.schema_name }}</span>{% endblock %}
+{% block header_actions %}{% estado t.estado %}<a href="{% url 'devpanel:tenant_editar' t.id %}" class="btn btn-ghost btn-sm">Editar</a>{% endblock %}
+
+{% block content %}
+{% if t.ultimo_error %}<div class="card p-4 border-red-500/40 bg-red-500/5 text-sm text-red-600 dark:text-red-400 font-mono whitespace-pre-wrap">{{ t.ultimo_error }}</div>{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card card-pad space-y-3 text-sm">
+        <h3 class="card-title mb-1">Ficha</h3>
+        <div class="flex justify-between gap-3"><span class="muted">SaaS</span><a href="{% url 'devpanel:servicio' t.servicio_id %}" class="link">{{ t.servicio }}</a></div>
+        <div class="flex justify-between gap-3"><span class="muted">Dominio</span>{% if t.url %}<a href="{{ t.url }}" target="_blank" rel="noopener" class="link truncate">{{ t.dominio }} ↗</a>{% else %}—{% endif %}</div>
+        <div class="flex justify-between gap-3"><span class="muted">ID en el SaaS</span><span class="font-mono">{{ t.id_externo|default:"—" }}</span></div>
+        <div class="flex justify-between gap-3"><span class="muted">Cliente</span>{% if t.cliente %}<a href="{% url 'staff:cliente' t.cliente_id %}" class="link">{{ t.cliente.nombre_visible }}</a>{% else %}<span class="text-amber-500">Sin vincular</span>{% endif %}</div>
+        <div class="flex justify-between gap-3"><span class="muted">Plan</span><span>{% if t.contratacion %}{{ t.contratacion.plan.nombre }} · {% estado t.contratacion.estado %}{% else %}<span class="text-amber-500">Sin contratación</span>{% endif %}</span></div>
+        <div class="flex justify-between gap-3"><span class="muted">Alta</span><span>{{ t.creado|date:"d/m/Y H:i" }}</span></div>
+        <div class="flex justify-between gap-3"><span class="muted">Último dato</span><span>{% if t.ultimo_sync %}hace {{ t.ultimo_sync|timesince }}{% else %}nunca{% endif %}</span></div>
+
+        <form method="post" class="pt-4 border-t border-slate-200 dark:border-slate-800 grid grid-cols-2 gap-2">
+            {% csrf_token %}
+            <button name="accion" value="sync" class="btn btn-primary btn-sm col-span-2" {% if not t.servicio.tiene_api %}disabled{% endif %}>Sincronizar 30 días</button>
+            {% if t.estado == 'pendiente' or t.estado == 'error' %}
+                <button name="accion" value="aprovisionar" class="btn btn-ok btn-sm col-span-2">{% if t.estado == 'error' %}Reintentar{% else %}Aprovisionar{% endif %} en el SaaS</button>
+                <button name="accion" value="marcar_activo" class="btn btn-ghost btn-sm col-span-2" onclick="return confirm('¿Ya lo creaste a mano en el SaaS?')">Lo creé a mano → marcar activo</button>
+            {% endif %}
+            {% if t.estado == 'activo' %}<button name="accion" value="suspender" class="btn btn-danger btn-sm" onclick="return confirm('¿Suspender el tenant en el SaaS?')">Suspender</button>{% endif %}
+            {% if t.estado == 'suspendido' %}<button name="accion" value="reactivar" class="btn btn-ok btn-sm">Reactivar</button>{% endif %}
+            {% if t.contratacion and t.servicio.tiene_api %}<button name="accion" value="plan" class="btn btn-ghost btn-sm">Enviar límites del plan</button>{% endif %}
+        </form>
+    </div>
+
+    <div class="card card-pad lg:col-span-2">
+        <h3 class="card-title mb-1">Consumo vs. plan</h3>
+        <p class="text-xs muted mb-5">Incluye métricas internas (no visibles para el cliente).</p>
+        {% include "partials/consumo.html" with items=consumo %}
+        {% if no_definidas %}
+            <p class="text-xs text-amber-500 mt-5">El SaaS envía claves sin definir: <span class="font-mono">{{ no_definidas|join:", " }}</span>. <a href="{% url 'devpanel:servicio' t.servicio_id %}" class="link">Definilas</a> para que se muestren con nombre y unidad.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card card-pad">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h3 class="card-title">Métricas</h3>
+        <div class="flex rounded-xl border border-slate-200 dark:border-slate-700 p-1 text-xs font-semibold">
+            {% for d in dias_opciones %}<a href="?dias={{ d }}" class="px-3 py-1 rounded-lg {% if d == dias %}bg-emerald-600 text-white{% else %}muted{% endif %}">{{ d }} días</a>{% endfor %}
+        </div>
+    </div>
+    {% if chart.graficos %}
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {% for g in chart.graficos %}
+                <div class="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+                    <p class="text-sm font-semibold mb-2">{{ g.nombre }} {% if g.unidad %}<span class="text-xs muted">({{ g.unidad }})</span>{% endif %}</p>
+                    <div class="h-40"><canvas id="g-{{ forloop.counter0 }}"></canvas></div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}<p class="text-sm muted">Todavía no llegaron métricas de este tenant.</p>{% endif %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800"><h3 class="card-title">Snapshots recibidos</h3></div>
+        <table class="tbl"><tbody>
+            {% for m in historial %}
+                <tr><td class="text-xs whitespace-nowrap">{{ m.fecha|date:"d/m/Y" }}<span class="block muted">{{ m.get_origen_display }}</span></td><td class="font-mono text-[11px] break-all">{{ m.datos }}</td></tr>
+            {% empty %}<tr><td class="text-center muted py-6">Sin datos.</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800"><h3 class="card-title">Tickets y tareas vinculados</h3></div>
+        <table class="tbl"><tbody>
+            {% for k in tickets %}
+                <tr><td><a href="{% url 'staff:ticket' k.id %}" class="link font-semibold">#{{ k.id }} {{ k.asunto }}</a><span class="block text-xs muted">{{ k.get_tipo_display }} · {{ k.created_at|date:"d/m/Y" }}</span></td><td class="text-right">{% estado k.estado %}</td></tr>
+            {% empty %}<tr><td class="text-center muted py-6">Sin tickets.</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800"><h3 class="card-title">Llamadas de integración</h3></div>
+    {% include "devpanel/_tabla_eventos.html" %}
+</div>
+{{ chart|json_script:"data-chart" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const ch = leerJSON('data-chart');
+    ch.graficos.forEach((g, i) => {
+        const color = PALETA[i % PALETA.length];
+        new Chart(document.getElementById('g-' + i), {
+            type: g.tipo === 'contador' ? 'bar' : 'line',
+            data: { labels: ch.labels, datasets: [{ data: g.datos, backgroundColor: g.tipo === 'contador' ? color : color + '22', borderColor: color,
+                    borderRadius: 3, fill: g.tipo !== 'contador', tension: .35, pointRadius: 0, spanGaps: true }] },
+            options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 6 } }, y: { beginAtZero: true } } }
+        });
+    });
+</script>
+{% endblock %}

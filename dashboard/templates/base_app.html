@@ -1,0 +1,187 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CoreX{% endblock %}</title>
+    <link rel="icon" href="{% static 'landing/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };
+        try {
+            if (localStorage.getItem('corex_theme') === 'light') document.documentElement.classList.remove('dark');
+        } catch (e) {}
+    </script>
+    <style type="text/tailwindcss">
+        @layer components {
+            .card { @apply bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm; }
+            .card-pad { @apply p-6; }
+            .card-title { @apply text-base font-bold text-slate-900 dark:text-white; }
+            .muted { @apply text-slate-500 dark:text-slate-400; }
+            .label { @apply block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1; }
+            .input { @apply w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-500; }
+            .btn { @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50; }
+            .btn-sm { @apply px-3 py-1.5 text-xs rounded-lg; }
+            .btn-primary { @apply bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-500/20; }
+            .btn-ghost { @apply border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800; }
+            .btn-ok { @apply bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500 hover:text-white; }
+            .btn-danger { @apply bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500 hover:text-white; }
+            .btn-mp { @apply bg-[#009EE3] hover:bg-[#0087C1] text-white; }
+            .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wide whitespace-nowrap; }
+            .badge-ok { @apply bg-emerald-500/10 text-emerald-600 dark:text-emerald-400; }
+            .badge-warn { @apply bg-amber-500/10 text-amber-600 dark:text-amber-400; }
+            .badge-bad { @apply bg-red-500/10 text-red-600 dark:text-red-400; }
+            .badge-info { @apply bg-indigo-500/10 text-indigo-600 dark:text-indigo-400; }
+            .badge-mute { @apply bg-slate-500/10 text-slate-500 dark:text-slate-400; }
+            .tbl { @apply w-full text-left text-sm border-collapse; }
+            .tbl thead tr { @apply border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50/60 dark:bg-slate-900/40; }
+            .tbl th { @apply py-3 px-4 font-bold; }
+            .tbl td { @apply py-3.5 px-4 align-middle; }
+            .tbl tbody tr { @apply border-b border-slate-100 dark:border-slate-800/70 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors; }
+            .kpi-valor { @apply text-3xl font-black mt-3 text-slate-900 dark:text-white; }
+            .link { @apply text-indigo-600 dark:text-indigo-400 hover:underline; }
+            .nav-link { @apply flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors; }
+            .nav-link.activo { @apply bg-indigo-600 text-white shadow-sm hover:bg-indigo-600; }
+            .nav-grupo { @apply px-3 pt-4 pb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500; }
+            .errorlist { @apply text-xs text-red-500 mt-1; }
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-[#060913] dark:text-slate-100 antialiased font-sans">
+<div class="flex h-screen overflow-hidden">
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 z-20 bg-black/60 backdrop-blur-sm hidden lg:hidden"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 -translate-x-full lg:translate-x-0 lg:static transition-transform duration-300 flex flex-col bg-white dark:bg-[#0b1120] border-r border-slate-200 dark:border-slate-800/80">
+        <div class="flex items-center justify-between h-16 px-6 border-b border-slate-200 dark:border-slate-800/80">
+            <a href="{% url 'redirect_post_login' %}" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl {% block area_color %}bg-indigo-600{% endblock %} flex items-center justify-center text-white font-black text-lg">C</div>
+                <div>
+                    <span class="font-extrabold text-lg tracking-tight">Core<span class="text-indigo-500">X</span></span>
+                    <span class="block text-[10px] font-mono uppercase tracking-widest text-slate-400 -mt-1">{% block area_nombre %}{% endblock %}</span>
+                </div>
+            </a>
+            <button onclick="toggleSidebar()" class="lg:hidden text-slate-400">✕</button>
+        </div>
+
+        <nav class="flex-1 px-4 py-2 space-y-1 overflow-y-auto text-sm font-medium">
+            {% block nav %}{% endblock %}
+
+            {% if rol_staff or rol_dev %}
+                <div class="nav-grupo">Cambiar de área</div>
+                {% if rol_staff %}
+                    <a href="{% url 'staff:inicio' %}" class="nav-link"><span>🏢 Backoffice staff</span></a>
+                {% endif %}
+                {% if rol_dev %}
+                    <a href="{% url 'devpanel:inicio' %}" class="nav-link"><span>🛠️ Panel desarrolladores</span></a>
+                {% endif %}
+                {% if user.is_superuser %}
+                    <a href="{% url 'admin:index' %}" class="nav-link" target="_blank"><span>⚙️ Admin Django ↗</span></a>
+                {% endif %}
+            {% endif %}
+        </nav>
+
+        <div class="p-4 border-t border-slate-200 dark:border-slate-800/80">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-500 font-bold uppercase shrink-0">
+                        {{ user.username|slice:":2" }}
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm font-bold truncate">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-xs text-slate-400 truncate">{{ user.email|default:"" }}</p>
+                    </div>
+                </div>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" title="Cerrar sesión" class="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="h-16 shrink-0 bg-white/80 dark:bg-[#0b1120]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between px-6 gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="min-w-0">
+                    {% block breadcrumb %}{% endblock %}
+                    <h1 class="text-lg font-bold truncate">{% block header_title %}Panel{% endblock %}</h1>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                {% block header_actions %}{% endblock %}
+                <button onclick="toggleTheme()" title="Cambiar tema" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 hover:border-indigo-500">
+                    <svg class="w-4 h-4 hidden dark:block text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <svg class="w-4 h-4 block dark:hidden text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-6 lg:p-8">
+            <div class="max-w-7xl mx-auto space-y-6">
+                {% if messages %}
+                    <div class="space-y-2">
+                        {% for message in messages %}
+                            <div class="p-4 rounded-xl border text-sm font-medium flex items-center justify-between gap-4
+                                {% if message.tags == 'success' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400
+                                {% elif message.tags == 'error' %}bg-red-500/10 border-red-500/30 text-red-700 dark:text-red-400
+                                {% elif message.tags == 'warning' %}bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-400
+                                {% else %}bg-indigo-500/10 border-indigo-500/30 text-indigo-700 dark:text-indigo-400{% endif %}">
+                                <span>{{ message }}</span>
+                                <button onclick="this.parentElement.remove()" class="text-xs opacity-60 hover:opacity-100">✕</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('-translate-x-full');
+        document.getElementById('sidebar-overlay').classList.toggle('hidden');
+    }
+    function toggleTheme() {
+        const dark = document.documentElement.classList.toggle('dark');
+        try { localStorage.setItem('corex_theme', dark ? 'dark' : 'light'); } catch (e) {}
+    }
+    function copiar(texto, btn) {
+        navigator.clipboard.writeText(texto).then(() => {
+            const o = btn.innerText; btn.innerText = '¡Copiado!'; setTimeout(() => btn.innerText = o, 1400);
+        });
+    }
+    function filtrarTabla(input, idTabla) {
+        const f = input.value.toLowerCase();
+        document.querySelectorAll('#' + idTabla + ' tbody tr').forEach(tr => {
+            tr.style.display = tr.innerText.toLowerCase().includes(f) ? '' : 'none';
+        });
+    }
+    // Defaults de Chart.js legibles en tema claro y oscuro
+    if (window.Chart) {
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(148,163,184,0.15)';
+        Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+        Chart.defaults.plugins.legend.labels.boxWidth = 12;
+        Chart.defaults.maintainAspectRatio = false;
+    }
+    const PALETA = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#ec4899', '#84cc16'];
+    function leerJSON(id) { const el = document.getElementById(id); return el ? JSON.parse(el.textContent) : null; }
+    function fmtNum(v) { return v == null ? '—' : Number(v).toLocaleString('es-AR', {maximumFractionDigits: 2}); }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

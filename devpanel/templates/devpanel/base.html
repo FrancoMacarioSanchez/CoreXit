@@ -1,0 +1,23 @@
+{% extends "base_app.html" %}
+{% block area_nombre %}Dev Console{% endblock %}
+{% block area_color %}bg-emerald-600{% endblock %}
+{% block nav %}
+    <div class="nav-grupo">Plataforma</div>
+    {% url 'devpanel:inicio' as u %}{% include "partials/nav_item.html" with href=u clave="inicio" label="Estado general" icon="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" %}
+    {% url 'devpanel:eventos' as u %}{% include "partials/nav_item.html" with href=u clave="eventos" label="Log de integración" contador=errores_24h icon="M13 10V3L4 14h7v7l9-11h-7z" %}
+    {% url 'devpanel:tenant_nuevo' as u %}{% include "partials/nav_item.html" with href=u clave="tenant_nuevo" label="Nuevo tenant" icon="M12 4v16m8-8H4" %}
+    {% url 'devpanel:docs' as u %}{% include "partials/nav_item.html" with href=u clave="docs" label="Contrato de API" icon="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" %}
+    <div class="nav-grupo">Operación</div>
+    {% url 'monitoreo:servidor' as u %}{% include "partials/nav_item.html" with href=u clave="servidor" label="Servidor" icon="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" %}
+    {% url 'monitoreo:actividad' as u %}{% include "partials/nav_item.html" with href=u clave="actividad" label="Actividad del staff" icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" %}
+    <div class="nav-grupo">SaaS</div>
+    {% for sv in servicios_nav %}
+        {% with k=sv.id|stringformat:"s" %}{% with clave="servicio-"|add:k %}
+        <a href="{% url 'devpanel:servicio' sv.id %}" class="nav-link {% if seccion == clave %}activo{% endif %}">
+            <span class="flex items-center gap-3"><span class="w-2.5 h-2.5 rounded-full ml-1.5 mr-1" style="background: {{ sv.color }}"></span>{{ sv.nombre }}</span>
+        </a>
+        {% endwith %}{% endwith %}
+    {% empty %}
+        <p class="px-3 text-xs muted">Cargá los SaaS desde el admin (Servicios).</p>
+    {% endfor %}
+{% endblock %}

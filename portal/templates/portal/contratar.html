@@ -1,0 +1,45 @@
+{% extends "portal/base.html" %}
+{% load corex %}
+{% block title %}Contratar | CoreX{% endblock %}
+{% block header_title %}Sumá herramientas a tu negocio{% endblock %}
+
+{% block content %}
+{% for s in servicios %}
+    <section>
+        <div class="mb-4">
+            <h2 class="text-xl font-bold" style="color: {{ s.color }}">{{ s.nombre }}</h2>
+            {% if s.descripcion %}<p class="text-sm muted mt-1">{{ s.descripcion }}</p>{% endif %}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {% for p in s.planes.all %}{% if p.activo %}
+                <form method="post" class="card card-pad flex flex-col">
+                    {% csrf_token %}
+                    <input type="hidden" name="plan" value="{{ p.id }}">
+                    <h3 class="text-lg font-bold">{{ p.nombre }}</h3>
+                    <p class="text-3xl font-black mt-2">{{ p.precio_mensual|pesos }}<span class="text-sm font-medium muted">/mes</span></p>
+                    {% if p.precio_anual %}<p class="text-xs muted">o {{ p.precio_anual|pesos }} al año</p>{% endif %}
+                    {% if p.descripcion %}<p class="text-sm muted mt-3 whitespace-pre-line">{{ p.descripcion }}</p>{% endif %}
+                    {% if p.limites.all %}
+                        <ul class="mt-4 space-y-1 text-sm">
+                            {% for l in p.limites.all %}<li>✓ {{ l.limite|num }} {{ l.metrica.unidad }} · {{ l.metrica.nombre|lower }}{% if l.metrica.tipo == 'contador' %}/mes{% endif %}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                    <div class="mt-auto pt-5 space-y-2">
+                        {% if p.id in contratados %}
+                            <span class="btn btn-ghost w-full cursor-default">Ya lo tenés</span>
+                        {% else %}
+                            <select name="frecuencia" class="input">
+                                <option value="mensual">Pago mensual</option>
+                                {% if p.precio_anual %}<option value="anual">Pago anual</option>{% endif %}
+                            </select>
+                            <button class="btn btn-primary w-full">Contratar</button>
+                        {% endif %}
+                    </div>
+                </form>
+            {% endif %}{% endfor %}
+        </div>
+    </section>
+{% empty %}
+    <div class="card card-pad text-center muted">No hay planes disponibles por el momento.</div>
+{% endfor %}
+{% endblock %}

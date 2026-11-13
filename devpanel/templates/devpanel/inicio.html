@@ -1,0 +1,95 @@
+{% extends "devpanel/base.html" %}
+{% load corex %}
+{% block title %}Dev Console | CoreX{% endblock %}
+{% block header_title %}Estado de la plataforma{% endblock %}
+{% block header_actions %}<a href="{% url 'devpanel:tenant_nuevo' %}" class="btn btn-primary btn-sm">+ Tenant</a>{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-5">
+    {% include "partials/kpi.html" with titulo="Tenants totales" valor=total_tenants %}
+    {% include "partials/kpi.html" with titulo="Activos" valor=estados.activo color="!text-emerald-500" %}
+    {% with p=estados.pendiente|stringformat:"s"|add:" pendientes · "|add:estados.aprovisionando|stringformat:"s" %}{% include "partials/kpi.html" with titulo="Con error" valor=estados.error color="!text-red-500" pie="Ver lista abajo" %}{% endwith %}
+    {% with p="en las últimas 24 h" %}{% include "partials/kpi.html" with titulo="Llamadas fallidas" valor=errores_24h pie=p color="!text-amber-500" %}{% endwith %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    {% for x in tarjetas %}{% with s=x.s %}
+        <a href="{% url 'devpanel:servicio' s.id %}" class="card card-pad block hover:border-emerald-500/60 transition-colors">
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full" style="background: {{ s.color }}"></span>
+                    <h3 class="text-lg font-bold">{{ s.nombre }}</h3>
+                    {% if not s.activo %}<span class="badge badge-mute">inactivo</span>{% endif %}
+                </div>
+                <span class="badge {{ x.salud.clase }}">{{ x.salud.texto }}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+                <div><p class="text-2xl font-black">{{ s.n_tenants }}</p><p class="text-[11px] muted">tenants</p></div>
+                <div><p class="text-2xl font-black text-emerald-500">{{ s.n_activos }}</p><p class="text-[11px] muted">activos</p></div>
+                <div><p class="text-2xl font-black {% if s.n_problemas %}text-amber-500{% endif %}">{{ s.n_problemas }}</p><p class="text-[11px] muted">a revisar</p></div>
+            </div>
+            <p class="text-xs muted mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                {{ x.llamadas_24h }} llamadas 24 h{% if x.errores_24h %} · <span class="text-red-500">{{ x.errores_24h }} con error</span>{% endif %}
+                · último sync {% if s.ultimo_sync %}hace {{ s.ultimo_sync|timesince }}{% else %}nunca{% endif %}
+            </p>
+        </a>
+    {% endwith %}{% empty %}
+        <div class="card card-pad md:col-span-3 text-center muted">No hay SaaS cargados. Creálos en el admin → Servicios.</div>
+    {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card card-pad lg:col-span-2">
+        <h3 class="card-title mb-1">Snapshots de métricas recibidos por día</h3>
+        <p class="text-xs muted mb-4">Si cae a cero, algún SaaS dejó de reportar.</p>
+        <div class="h-56"><canvas id="chartActividad"></canvas></div>
+    </div>
+    <div class="card card-pad">
+        <h3 class="card-title mb-4">Tenants por estado</h3>
+        <div class="space-y-2 text-sm">
+            {% for k, v in estados.items %}<div class="flex justify-between items-center">{% estado k %}<span class="font-bold">{{ v }}</span></div>{% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800"><h3 class="card-title">Requieren atención</h3></div>
+        <table class="tbl"><tbody>
+            {% for t in problemas %}
+                <tr>
+                    <td><a href="{% url 'devpanel:tenant' t.id %}" class="font-semibold link">{{ t.nombre }}</a><span class="block text-xs muted">{{ t.servicio }} · <span class="font-mono">{{ t.schema_name }}</span></span>{% if t.ultimo_error %}<span class="block text-xs text-red-500 truncate max-w-md">{{ t.ultimo_error|truncatechars:90 }}</span>{% endif %}</td>
+                    <td class="text-right">{% estado t.estado %}</td>
+                </tr>
+            {% empty %}<tr><td class="muted text-center py-6">Nada pendiente ✔</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+    <div class="card overflow-hidden">
+        <div class="p-5 border-b border-slate-200 dark:border-slate-800"><h3 class="card-title">Activos sin datos en 48 h</h3></div>
+        <table class="tbl"><tbody>
+            {% for t in sin_datos %}
+                <tr>
+                    <td><a href="{% url 'devpanel:tenant' t.id %}" class="font-semibold link">{{ t.nombre }}</a><span class="block text-xs muted">{{ t.servicio }} · <span class="font-mono">{{ t.schema_name }}</span></span></td>
+                    <td class="text-right text-xs muted">{% if t.ultimo_sync %}hace {{ t.ultimo_sync|timesince }}{% else %}nunca{% endif %}</td>
+                </tr>
+            {% empty %}<tr><td class="muted text-center py-6">Todos reportan ✔</td></tr>{% endfor %}
+        </tbody></table>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+    <div class="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between"><h3 class="card-title">Últimas llamadas</h3><a href="{% url 'devpanel:eventos' %}" class="text-xs link">Ver log →</a></div>
+    {% include "devpanel/_tabla_eventos.html" %}
+</div>
+{{ chart_actividad|json_script:"data-actividad" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const a = leerJSON('data-actividad');
+    new Chart(document.getElementById('chartActividad'), {
+        type: 'bar', data: { labels: a.labels, datasets: [{ label: 'Snapshots', data: a.data, backgroundColor: '#10b981', borderRadius: 4 }] },
+        options: { plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, ticks: { precision: 0 } } } }
+    });
+</script>
+{% endblock %}

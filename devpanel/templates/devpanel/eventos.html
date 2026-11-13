@@ -1,0 +1,19 @@
+{% extends "devpanel/base.html" %}
+{% block title %}Log de integración | Dev Console{% endblock %}
+{% block header_title %}Log de integración{% endblock %}
+
+{% block content %}
+<form class="flex flex-wrap gap-3">
+    <select name="servicio" class="input !w-52" onchange="this.form.submit()">
+        <option value="">Todos los SaaS</option>
+        {% for s in servicios %}<option value="{{ s.id }}" {% if request.GET.servicio == s.id|stringformat:"s" %}selected{% endif %}>{{ s.nombre }}</option>{% endfor %}
+    </select>
+    <select name="direccion" class="input !w-52" onchange="this.form.submit()">
+        <option value="">Ambas direcciones</option>
+        <option value="saliente" {% if request.GET.direccion == 'saliente' %}selected{% endif %}>Hub → SaaS</option>
+        <option value="entrante" {% if request.GET.direccion == 'entrante' %}selected{% endif %}>SaaS → Hub</option>
+    </select>
+    <label class="flex items-center gap-2 text-sm"><input type="checkbox" name="error" value="1" {% if request.GET.error %}checked{% endif %} onchange="this.form.submit()"> Solo errores</label>
+</form>
+<div class="card overflow-hidden">{% include "devpanel/_tabla_eventos.html" %}</div>
+{% endblock %}

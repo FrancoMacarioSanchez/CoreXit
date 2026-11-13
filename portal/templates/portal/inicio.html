@@ -1,0 +1,105 @@
+{% extends "portal/base.html" %}
+{% load corex %}
+{% block title %}Mi portal | CoreX{% endblock %}
+{% block header_title %}Hola, {{ perfil.nombre|default:user.username }} 👋{% endblock %}
+{% block header_actions %}<a href="{% url 'portal:soporte' %}" class="btn btn-ghost btn-sm hidden sm:inline-flex">Necesito ayuda</a>{% endblock %}
+
+{% block content %}
+{% for c in pendientes_pago %}
+    <div class="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-amber-500/40 bg-amber-500/5">
+        <p class="text-sm"><strong>{{ c.servicio }} · {{ c.plan.nombre }}</strong> está esperando el pago para activarse.</p>
+        <a href="{% url 'portal:checkout' c.id %}" class="btn btn-mp btn-sm">Completar pago</a>
+    </div>
+{% endfor %}
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+    {% include "partials/kpi.html" with titulo="Servicios activos" valor=kpis.servicios_activos icono="✅" pie="Suscripciones operativas" %}
+    {% with g=kpis.gasto_mensual|pesos %}{% include "partials/kpi.html" with titulo="Inversión mensual" valor=g icono="💳" pie="Planes anuales prorrateados" %}{% endwith %}
+    {% with m=kpis.pendiente_monto|pesos %}{% if kpis.vencido_count %}{% include "partials/kpi.html" with titulo="Saldo pendiente" valor=m color="!text-red-500" icono="⚠️" pie="Tenés facturas vencidas" %}{% else %}{% include "partials/kpi.html" with titulo="Saldo pendiente" valor=m icono="🧾" pie="Facturas por abonar" %}{% endif %}{% endwith %}
+    {% if kpis.proximo_vencimiento %}
+        {% with v=kpis.proximo_vencimiento.fecha_vencimiento|date:"d/m/Y" %}{% include "partials/kpi.html" with titulo="Próxima renovación" valor=v icono="📅" pie=kpis.proximo_vencimiento.servicio.nombre %}{% endwith %}
+    {% else %}
+        {% include "partials/kpi.html" with titulo="Próxima renovación" valor="—" icono="📅" %}
+    {% endif %}
+</div>
+
+<div>
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-bold">Tus sistemas</h2>
+        <a href="{% url 'portal:servicios' %}" class="text-sm link">Ver detalle de consumo →</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {% for item in tarjetas %}
+            {% with c=item.c %}
+            <a href="{% url 'portal:servicio' c.id %}" class="card card-pad block hover:border-indigo-500/60 transition-colors">
+                <div class="flex items-start justify-between gap-2">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-widest" style="color: {{ c.servicio.color }}">{{ c.servicio.nombre }}</span>
+                        <h3 class="text-lg font-bold">{{ c.plan.nombre }}</h3>
+                    </div>
+                    {% estado c.estado %}
+                </div>
+                <div class="mt-4">
+                    {% if item.consumo %}
+                        {% include "partials/consumo.html" with items=item.consumo %}
+                    {% elif c.estado == 'activo' %}
+                        <p class="text-sm muted">{% if item.tenant.estado == 'aprovisionando' or item.tenant.estado == 'pendiente' %}Estamos preparando tu sistema…{% else %}Las estadísticas aparecerán cuando el sistema empiece a reportar uso.{% endif %}</p>
+                    {% else %}
+                        <p class="text-sm muted">Activá el servicio para empezar a ver tu consumo.</p>
+                    {% endif %}
+                </div>
+                {% if item.alerta %}<p class="mt-3 text-xs font-semibold text-amber-500">Estás cerca del límite de tu plan</p>{% endif %}
+            </a>
+            {% endwith %}
+        {% empty %}
+            <div class="card card-pad md:col-span-2 xl:col-span-3 text-center">
+                <p class="muted text-sm">Todavía no tenés servicios contratados.</p>
+                <a href="{% url 'portal:contratar' %}" class="btn btn-primary mt-4">Ver planes disponibles</a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="card card-pad lg:col-span-2">
+        <h3 class="card-title mb-4">Tus pagos en los últimos 12 meses</h3>
+        <div class="h-64"><canvas id="chartPagos"></canvas></div>
+    </div>
+    <div class="card card-pad flex flex-col">
+        <h3 class="card-title mb-4">Últimos comprobantes</h3>
+        <div class="space-y-3 flex-1">
+            {% for f in ultimas_facturas %}
+                <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+                    <div>
+                        <p class="text-xs font-bold">Factura {{ f.tipo_comprobante }} · {{ f.numero_comprobante }}</p>
+                        <p class="text-[11px] text-slate-400">{{ f.periodo_facturado }} · vence {{ f.fecha_vencimiento|date:"d/m" }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-black">{{ f.monto|pesos }}</p>
+                        {% estado f.estado_real %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-sm text-slate-400 py-8 text-center">Todavía no tenés facturas.</p>
+            {% endfor %}
+        </div>
+        <a href="{% url 'portal:facturas' %}" class="btn btn-ghost btn-sm mt-4 w-full">Ver todas →</a>
+    </div>
+</div>
+{{ chart_pagos|json_script:"data-pagos" }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const d = leerJSON('data-pagos');
+    new Chart(document.getElementById('chartPagos'), {
+        type: 'bar',
+        data: { labels: d.labels, datasets: [
+            { label: 'Facturado', data: d.facturado, backgroundColor: 'rgba(99,102,241,.35)', borderRadius: 6 },
+            { label: 'Pagado', data: d.cobrado, backgroundColor: '#10b981', borderRadius: 6 },
+        ]},
+        options: { plugins: { tooltip: { callbacks: { label: c => c.dataset.label + ': $ ' + fmtNum(c.raw) } } },
+                   scales: { x: { grid: { display: false } }, y: { beginAtZero: true } } }
+    });
+</script>
+{% endblock %}
